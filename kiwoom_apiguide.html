@@ -1,0 +1,3396 @@
+
+
+
+
+<!DOCTYPE html>
+<html>
+
+
+
+
+
+
+
+<head>
+	<meta charset="UTF-8">
+	<meta http-equiv="Content-Type" content="text/html;charset=utf-8">
+
+    <meta name="format-detection" content="telephone=no">
+	
+    <meta property="og:type" content="website" />
+	<meta property="og:title" content=" 키움증권 | 대한민국 주식시장 점유율 1위 "/>
+	<meta property="og:description" content="대한민국 주식시장 점유율 1위, 키움증권에서 국내주식,해외주식, 금융상품 등 폭넓은 투자를 함께 하세요."/>
+	<meta property="og:image" content="https://www.kiwoom.com/h/kws/assets/images/common/header-logo.png"/>
+	<meta property="og:url" content="https://www.kiwoom.com/"/>
+	<meta name="description" content="대한민국 주식시장 점유율 1위, 키움증권에서 국내주식,해외주식, 금융상품 등 폭넓은 투자를 함께 하세요.">
+	<link rel="canonical" href="https://www.kiwoom.com/">
+	<title>키움 REST API</title>
+
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-status-bar-style" content="default">
+    <meta name="description" content="KIWOOM REST API">
+    <meta name="keywords" content="KIWOOM REST API">
+    <meta name="author" content="KIWOOM REST API">
+
+	
+	<link rel="shortcut icon" href="/resources/portal/images/common/favicon.ico?20250515" type="image/x-icon" />
+	<link rel="icon" href="/resources/portal/images/common/favicon.ico?20250515" type="image/x-icon" />
+	
+	<link rel="stylesheet" type="text/css" href="/resources/portal/js/lib/jquery-ui.min.css?20250515">
+	<link rel="stylesheet" type="text/css" href="/resources/portal/js/lib/swiper.min.css?20250515">
+	<link rel="stylesheet" type="text/css" href="/resources/portal/css/lib/jquery.timepicker.min.css?20250515">
+    <link rel="stylesheet" type="text/css" href="/resources/portal/css/openAPI_common.css?20260122">
+    <!-- 퍼블 이 외 css수정분 -->
+    <link rel="stylesheet" type="text/css" href="/resources/portal/css/common_custom.css?20251023">
+	<link rel="stylesheet" type="text/css" href="/resources/portal/css/calendar.css?20250515">
+
+	<script>var Q6uin = {"o9EIE":"T5bdT5KdT528KsT9sxqA6N4t1WoaT528T5q0T528T5bQuCUJqFfJqFfzVOLaVdFa4CiJqFfJqFqSVjFSvxqam8FSvS0zn8FSvxJy68FSvS4gnCFSvSKAnhpJqgqS6xnhfCFSvxKLnCFSvSt9m8FSvS0XKdFSvxtSmdFSvxbMnjFSvxLXnWmJqgqcmOmJqgqXnOpJqgqP1sRJqgfSkCFSvxTemdIzVCF8qdF8fCFS4dF74R==","jxXFI":"/","rwEQW":"evfw","ttaVS":"","lwuxF":0,"twJd7":"T5KdT5281gLiKWgJfy2JfgiJqF2Jqg2JfyT7T528T5q0T528FiB5bdF84CF74jMcT52gT528T5TGT528mdF8fCFav5iXT5TGT528pCF8fCFav5iJfIfJfyTzmCF8fCFav5iJfIfJfyTD6dF8fCFavjF7vCF74dF8v8F8fNTyT528T5q0T5bdT528ps0X6OJyps4L6xMJfIncmxBzT528T5biT5KiT5biT5TGT528nbJe3ZiJfy2JfgiJqF2Jqg2JfyT7mhDHpxBzKOQL6NfJfy2JfgiJfy2JfIntmSqLmSvJfInaKZTJpW7F6gq91WbzKdF8fCFS4dF74dF8v8F8fI7Zj7nnT528T5q0T528pWDJmNvUTS4UmhbtKdF8fO4JKObyKObI2jitT8IJfg2Jfy0S1WoI6Smz6OByps4L6xMzmhb96xQIVZ48KWFLT5qdT528T5TGT528kItdF7RJfy2JfgiJfyTQKC7EKN2Jfy2JfIfJfyTO4ZnTWCF8fCFavjF8fIbxubTJmSRJfy2Jqgv=","mJPLZ":{},"NE6Mx":"T5KdT528vyJIFy2Jfy2JfgiJfyTxps2Jfy0HnWpJfyRJfgvJfy0I6xq76WbzKdoymhbtKObQ6ObenWogVdF7v8F8fhnAmhgJqFfJfy2LT5qdsxbhuh7JKOtAndF8fdFa4dF8fdF7v8F8fN0AmSvJqFfJfy2JfgTHnWpzpWqg1WBzT52XT5qiT52XT5bGT528T5TOpxBe6WBzT5TOnsT86S2JqFfJfy2Jfg2Jfy0xps2Jfy0H1WpJfyRJfgvJfy0I6xq76WbzKdoymhbtKObQ6ObenWogVdKL6N07KdmLT5qdsxJhuNqJKiQgKZTLpNbgnjwN6hQenjmJfIfJfyRNnsnJmNqtnhbF1ZTJps4qnsqapWKJT8IJfgTH1Wpzmxbgvs4gmhJCKs4JVdKxpWD7njmJfIfJfyRNvgvef5vXfGFNVjFavJBLnCoans40KZ481WT7KOFUTS4omOFNT5TGT52XTxtLnO4J6CmLT5qdsxbhuhQXmObzniqU1WDIVQBLnCIJfgTLnCtI6xq76WbzKdoC6x4oVjFSvh4ApSbenWoguhTAnZIzps0XnWoIvxtL6OvUsxbhVjFavCFS4Ob9mxFJqgTI6xq76WbzKdoUnWQIuhQXmObzniqU1WDIVQBJnCIJqg4HnWpzmSbC6WJgVdIJfg2Jfy2Jqgv=","Wl1i0":"T5KdT5285SK0bIMJfy2Jfgi7T5TGT528pSKP1GTeT528T5q0fjF8v8F8fNR86OvxT528T5q0fjF8v8F8fJb2j7KET528T5q0T528pWDJmNvUTS4UmhbtKdF8fO4JKObyKObI2jitT8IJfg2Jfy0S1WoI6Smz6OByps4L6xMzmhb96xQIVZ48KWFLT5qdT528T5TGT528jS4AKS2Jfy2JfgiJfyTVFIl8FFtaqIpJfy2JfIfJfyT0niBCv8F8fCFavjFSvCF8fyfMqGiDqGIMfy0HbaiXT5qisaRefjF8fCFavjFSvCFS4dF8v8F8fJ0EF7vJfIpJqFFzVCF8qQBsf5RJfg4Hf5RefdF8fCFavjFSvCFS4dF8v8F8fy2XfGFgqapaqy0HbaiXT5qisaRefjF8fCFavjFSvCFS4dF8v8F8fyiMf5v83GIof5THbaiXT5qisaRefjF8fCFavjFSvCFS4dF8v8F8fyfo3GRxfamDqQBsf5RJfg4HfdgDT528T5q0T5KdT5KiT5TGT528f5fXqyixq5m8fbBsf5RJfg4HfdgDT528T5q0T5KdT5KiT5TGT528f5vDfGixq5i73QBsf5RJfg4HfdgDT528T5q0T5KdT5KiT5TGT528fy2DfyRafa2gfbBsf5RJfg4HfdgDT528T5q0T5KdT5KiT5TGT528fyfgfawofaF7fJBsf5RJfg4HfdgDT528T5q0T5KdT5KiT5TGT528qGiSfGwXqafxfQBsf5RJfg4HfdgDT528T5q0T5KdT5KiT5TGT528fyF8fGIoqaIgfbBsf5RJfg4HfdgDT528T5q0T5KdT5KiT5TGT528fyI7fyR8fyFXqQBsf5RJfg4HfdgDT528T5q0T5KdT5KiT5TGT528fafXfGfgq5R7qbBsf5RJfg4HfdgDT528T5q0T5KdT5KiT5KiT5TGT528pIJnF5fJfy2JfgiJqF2JqFvJfIfJfyT84hLbjjF8fCFavjF7vCFSvCF8fNb86QBy6xogpWJzm8F8fCFavjF8fCF84hqA6W7A6CF84hb8mhB8T528T5KiT5TGT5KdT528KsT9sxqA6N4t1WoaT528T5q0T528T5TO6WQL6CF84Jq36S4Lpxb21sqg6SToT528T5KiT5biT5TGT5285Jq0mGwJfy2JfgiJqF2Jqg2JfyTU6Sqg5hQenjF8fCFavjF8fCF74jMcphTzndFa4CF7v8F7v8or1sKA6xgJqFfJqFfzpxBeuCUJfyvJfy2JfIfJfyTy6xognstgFOQg1iDLmSvJfy2JfgiJqF2Jfy2JfIpJfy2JqFvJfIfJfyTJkOqJmZ4G6xognstgFOQg1iDLmSvJfy2JfgiJqF2JqFvJqgvJfIfJqg2JfyTU6Sqg5hQenjF8fCFavjF8fCF74jMc6S0J6hQX1jF7vyiefCF74dFa4CF7v8F7v8or1sKA6xgJqFfJqFfzpxBeuCUJfyvJfy2JfIfJfyTy6xognstgFOQg1iDLmSvJfy2JfgiJqF2Jfy2JfIpJfy2JqFvJfIfJfyTJkOqJmZ4G6xognstgFOQg1iDLmSvJfy2JfgiJqF2JqFvJqgvJfIfJqg2JfyTU6Sqg5hQenjF8fCFavjF8fCF74jMcKSKST5bdfjggT5biT5qOT5bGT5bGuheLKxBA6jF7v8F7v8oy6xgzVCF8qdF8fCF8v8F8fhqA6N4JkZ4vps4U5OJaKdF8fCFavjF7vCF8fCF84CF8fCF74dF8v8F8fhbMpxbXKiqA6N4JkZ4vps4U5OJaKdF8fCFavjF7vCF74dFS4dF8v8FSvCF8fhtAmS43pW7JT528T5q0T5286heSuheLKxBA6joy6xgJfy2JfIfJfyTy6xognstgFOQg1iDLmSvJfy2JfgiJqF2Jfy2JfIpJfy2JqFvJfIfJfyTJkOqJmZ4G6xognstgFOQg1iDLmSvJfy2JfgiJqF2JqFvJqgvJfIfJqg2JfyTU6Sqg5hQenjF8fCFavjF8fCF74jMc6OBypWXzVCF8qdF8fCF8v8F8fhqA6N4JkZ4vps4U5OJaKdF8fCFavjF7vCF8fCF84CF8fCF74dF8v8F8fhbMpxbXKiqA6N4JkZ4vps4U5OJaKdF8fCFavjF7vCF74dFS4dF8v8FSvCF8fhtAmS43pW7JT528T5q0T528T5bQuCUDqa2zVCF8qdF8fCF8v8F8fhqA6N4JkZ4vps4U5OJaKdF8fCFavjF7vCF8fCF84CF8fCF74dF8v8F8fhbMpxbXKiqA6N4JkZ4vps4U5OJaKdF8fCFavjF7vCF74dFS4dF8v8FSvCF8fhtAmS43pW7JT528T5q0T528T5bQuCUDfdMcT52gT528T5TGT528pxBzKObMKQ0tKOtf1sqgT528T5q0T5bdT528T5TOT528T5biT5TGT528nstyns0gvxBzKObMKQ0tKOtf1sqgT528T5q0T5bdT5biT5KiT5TGT5KdT5281OBaKiot6WFJfy2JfgiJfyTAmObzps0LnObxuheLKxBA6joy6xgJfy2JfIfJfyTy6xognstgFOQg1iDLmSvJfy2JfgiJqF2Jfy2JfIpJfy2JqFvJfIfJfyTJkOqJmZ4G6xognstgFOQg1iDLmSvJfy2JfgiJqF2JqFvJqgvJfIfJqg2JfyTU6Sqg5hQenjF8fCFavjF8fCF74jMcphTzT5qOT5bGT5bGuheLKxBA6jF7v8F7v8oy6xgzVCF8qdF8fCF8v8F8fhqA6N4JkZ4vps4U5OJaKdF8fCFavjF7vCF8fCF84CF8fCF74dF8v8F8fhbMpxbXKiqA6N4JkZ4vps4U5OJaKdF8fCFavjF7vCF74dFS4dF8v8FSvCF8fhtAmS43pW7JT528T5q0T528T5bQuCLJKNvJqF2Du5vJqFvJfgpJqFfJqFfz1xJS6xBeT5bGT5bGuhqA6jMcT52gT528T5TGT528pxBzKObMKQ0tKOtf1sqgT528T5q0T5bdT528T5TOT528T5biT5TGT528nstyns0gvxBzKObMKQ0tKOtf1sqgT528T5q0T5bdT5biT5KiT5biT5TGT528kJ0nWQfJfy2JfgiJqF2Jqg2JfyTrnsIJfy2JfgiJfyTJKhnSsS4hT528T5TGT528KhQ9KWFJfy2JfgiJfy2X3QJ3finCW5TDkdFa4dF8fCF8v8F8fNnt6ZbJsS4omOFJfy2JfgiJfyTaKZTL6hmJfy2JqgvJqFvJqgv=","rdGoF":{"C4HnV":"l"},"iGtPp":{"cybVj":[],"n4qNz":"","uGaly":"","qTtoo":[],"ivoKD":""},"BIytr":{"Dgvu2":[],"Sgd9U":"alert('threat detected!!!'); window.location.reload(true);"},"PQfvU":{"JUz4u":[],"KX5Na":[],"IopkZ":"du/","OKol8":[],"uN8EJ":{},"NWAeT":"dq/"},"PewIJ":{"JPSP7":"","hl6IZ":0,"knvNB":"","dkCWc":[]},"uw1D5":{"RksY5":"","gN1a0":[],"B4lYQ":[],"wcJck":""}};
+</script><script src="/guide/apiguide?evfw=skp4Ss5MPBiGQ4Fo" charset="utf-8"></script><script type="text/javascript" src="/resources/portal/js/lib/jquery-3.3.1.min.js?20250515"></script>
+	<script type="text/javascript" src="/resources/portal/js/lib/jquery/jquery-extends-custom.js?20250515"></script>
+	<script type="text/javascript" src="/resources/portal/js/lib/iframe.js?20250515"></script>
+	<script type="text/javascript" src="/resources/portal/js/lib/jquery-ui.min.js?20250515"></script>
+	<script type="text/javascript" src="/resources/portal/js/lib/swiper.min.js?20250515"></script>
+	<script type="text/javascript" src="/resources/portal/js/common/portalCommon.js?20250515"></script>
+	<script type="text/javascript" src="/resources/portal/js/interation.js?20250717" defer></script>
+	<script type="text/javascript" src="/resources/portal/js/lib/jdate.js?20250515"></script>
+	<script type="text/javascript" src="/resources/portal/js/lib/jquery/jquery.timepicker.min.js?20250515"></script>
+
+
+	<!-- 공동인증 Koscom 모듈 js -->
+	<script type="text/javascript" src="/resources/portal/js/koscom/app/library/json3.min.js?20250612"></script>
+	<script type="text/javascript" src="/resources/portal/js/koscom/app/library/iecompatibility.js?20250612"></script>
+	<script type="text/javascript" src="/resources/portal/js/koscom/app/vestsign.js?20250612"></script>
+	<script type="text/javascript" src="/resources/portal/js/koscom/app/js/koscom.js?20250612"></script>
+	<script type="text/javascript" src="/resources/portal/js/koscom/app/activexAdp.js?20250612"></script>
+	
+	<script type="text/javascript" src="/resources/portal/js/koscom_cert.js?20250612"></script>
+	<script type="text/javascript" src="/resources/portal/js/koscom_cloud.js?20250916"></script>
+	<script type="text/javascript" src="/resources/portal/js/addCert.js?20250612"></script>
+	<!-- 공동인증 Koscom 모듈 js -->
+	
+	<!-- astx 모듈 js -->
+	<script type="text/javascript" src="/resources/portal/js/astx/astx2.min.js?20250515"></script>
+	<script type="text/javascript" src="/resources/portal/js/astx/astx2_custom.js?20250515"></script>
+	<script type="text/javascript" src="/resources/portal/js/astx/astx2_ml.min.js?r=15158&ver=20250515"></script>
+	
+	<script type="text/javascript" src="/resources/portal/js/XecureObject/xecureweb_kws.js?20250515"></script>
+	<!-- astx 모듈 js -->
+	
+	<!-- 안랩 키패드 관련 모듈 js -->
+    <script type="text/javascript" src="/resources/portal/anlab/js/astx/astx2_custom.js?20250515"></script>
+    <script type="text/javascript" src="/resources/portal/anlab/js/astx/astx2.min.js?r=19117&ver=20250515"></script>
+    <script type="text/javascript" src="/resources/portal/anlab/js/astx/astx2_jq.min.js?r=16926&ver=20250515"></script>
+    <script type="text/javascript" src="/resources/portal/anlab/js/askd/askd2_custom.js?20250515"></script>
+    <script type="text/javascript" src="/resources/portal/anlab/js/askd/askd2.min.js?r=23561&ver=20250515"></script>
+    <script type="text/javascript" src="/resources/portal/anlab/js/ahnLab.js?20250515"></script>
+    <!-- 안랩 키패드 관련 모듈 js -->
+	<script type="text/javascript" src="/script-menu"></script>
+	<script type="text/javascript" src="/resources/portal/js/lib/string-prototype.js?20250515"></script>
+	<script type="text/javascript" src="/resources/portal/js/lib/message-popup.js?20250515"></script>
+	
+	<!-- 간편인증 -->
+	<script type="text/javascript" src="/resources/portal/js/simpleAuth/simpleAuth.js?20250515"></script>
+	<script type="text/javascript" src="/resources/portal/js/simpleAuth/qrcode.js"></script>
+	<script type="text/javascript" src="/resources/portal/js/simpleAuth/webnpki/webnpki.js?20250515"></script>
+	
+	<!-- screen initialize -->
+	<script type="text/javascript" src="/resources/portal/js/initialize.js?20250918"></script>
+		
+	
+    <title>키움 REST API</title>
+
+	<!-- 아이패드, 아이폰, 아이팟일 경우 html, body에 스크롤 속성 추가 -->
+	<script type="text/javascript">
+		(function (){
+			const ua = (navigator.userAgent || '').toLowerCase();
+			const platform = (navigator.platform || '').toLowerCase();
+			const isIPhone = ua.includes('iphone');
+			const isIPod = ua.includes('ipod');
+			const isIPadUa = ua.includes('ipad');
+			const isRealIPad = platform === 'macintel' && navigator.maxTouchPoints > 1;
+			const isiOS = isIPhone || isIPod || isIPadUa || isRealIPad;
+
+			if(isiOS){
+				$('html, body').css('scroll-behavior', 'smooth');
+			}
+		})();
+	</script>
+    
+    <script type="text/javascript">
+		// 모바일 터치 설정 여부
+		window.GLOBAL_deviceType = portalCommon.getClientType() ;
+
+		// document 클릭 이벤트
+		$(document).on('click', function(e){
+			// 태블릿이면서 메뉴가 열려있을 경우 자동 닫기
+			if(window.GLOBAL_deviceType === '01' && $(e.target).closest('#header').length === 0 && $('#header').hasClass('on')){
+				$('#header').removeClass('on');
+				// $('.gnb-menu-list').removeClass('on');
+			}
+		});
+
+		// 즉시 실행
+		$(function(){
+
+			document.addEventListener('keydown',function(e){
+				if (e.target != $('#qstnText')[0] && e.keyCode == 13) {
+					e.preventDefault();
+				}
+			});
+			
+			var certType = "";
+			if(certType == "SIMPLE_AUTH" && SimpleAuth && SimpleAuth.override instanceof Function)
+				SimpleAuth.override();
+			if(certType == "CLOUD" && CloudAuth && CloudAuth.override instanceof Function)
+				CloudAuth.override();
+
+			$("#gnbArea , .sub-nav-bar").find("a:not(.icon-top-login , .open-api-logo)").on('click',function(){
+				var curMid = $(this).data("mid");
+				var cMenu = $currentMenus.filter(function(n){
+					return n.mid == curMid;
+				});
+				var url = cMenu[0].path;
+				if(navigator.platform.indexOf("Win") <= -1){
+					if(url == "/mgmt/VOpenApiRegView" || url == "/assist/index" || url == "/assist/sample"){
+						localStorage.setItem("r","1");
+					}else{
+						localStorage.setItem("r","0");
+					}
+				}
+
+				// 태블릿일 경우
+				if(window.GLOBAL_deviceType === '01'){
+					// 대분류가 아닐 경우에만
+					if(cMenu[0].group != 'o'){
+						$.xmit(""+url);
+					}
+				}else{
+					// PC일 경우
+					$.xmit(""+url);
+				}
+		    });
+			
+			$("#v3chk , #floatingArea .btn_v3").off("click").on("click",function(){
+				$.xmit("/etc/VSecInstallDownView");
+			})
+		});
+	</script>
+</head>	
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<header id="header" class="fixed">
+            
+    <div class="top-area">
+        <div id="gnbArea" class="header-inner">
+
+            <h1 class="header-title">
+                <a href="/main/home" class="open-api-logo" title="Go To 키움 REST API">
+                    <span class="text-blind">REST API</span>
+                </a>
+            </h1>
+            <nav class="gnb-menu-area">
+                <h2 class="text-blind">메뉴</h2>
+                <ul class="gnb-menu-list">
+                    <li class="link-area">
+                        <a href="javascript:void(0);" class="first-menu" data-mid="01000000">서비스 소개</a>
+                        <ul class="sub-menu-list">
+                            <li><a href="javascript:void(0);" class='btn-menu-link' data-mid="01010000">키움 REST API 소개</a></li>
+                            <li><a href="javascript:void(0);" class='btn-menu-link' data-mid="01020000">서비스 이용안내</a></li>
+                            <li><a href="javascript:void(0);" class='btn-menu-link' data-mid="01030000">모의투자 이용안내</a></li>
+                        </ul>
+                    </li>
+                    <li class="link-area">
+                        <a href="javascript:void(0);" class="first-menu" data-mid="02000000">API 가이드</a>
+                        <ul class="sub-menu-list">
+                            <li><a href="javascript:void(0);" class='btn-menu-link' data-mid="02020000">API 가이드</a></li>
+                            <li><a href="javascript:void(0);"   class='btn-menu-link' data-mid="02010000">시작하기</a></li>
+                            <li><a href="javascript:void(0);"   class='btn-menu-link' data-mid="02030000">오류코드</a></li>
+
+                        </ul>
+                    </li>
+                    <li class="link-area">
+                        <a href="javascript:void(0);" class="first-menu" data-mid="03000000">AI 코딩 어시스턴트</a>
+                        <ul class="sub-menu-list">
+                            <li><a href="javascript:void(0);"  class='btn-menu-link' data-mid="03020000">AI 코딩 어시스턴트</a></li>
+                            <li><a href="javascript:void(0);"  class='btn-menu-link' data-mid="03010000">서비스 소개</a></li>
+                        </ul>
+                    </li>
+                    <li class="link-area">
+                        <a href="javascript:void(0);" class="first-menu" data-mid="04000000">게시판</a>
+                        <ul class="sub-menu-list">
+                            <li><a href="javascript:void(0);"  class='btn-menu-link' data-mid="04010000">공지사항</a></li>
+                            <li><a href="javascript:void(0);"  class='btn-menu-link' data-mid="04020000">Q&amp;A</a></li>
+                            <li><a href="javascript:void(0);"  class='btn-menu-link' data-mid="04030000">자주묻는질문</a></li>
+                        </ul>
+                    </li>
+                </ul>
+            </nav>
+            <nav class="user-menu-area">
+                <ul class="user-menu-list">
+                    <li><a href="javascript:void(0);" id="topApplication" class="icon-top-application btn-menu-link" data-mid="05000000">API 사용신청</a></li>
+                    
+                    
+                    
+                    <li><a href="javascript:void(0);" id="topLogin" class="icon-top-login">로그인</a></li>
+                    	<script>
+	                    	$("#topLogin").on("click",function(){
+	                        	$.xmit("/loginView");
+	                    	});
+                    	</script>
+                    
+                    
+                     
+                    <li>
+                    
+                    
+                    
+                    	<span id="v3chk" class="icon-top-security">
+                            <em class="blind">V3 미동작</em>
+                        </span>
+                    
+                        
+                        
+						
+                        
+                    </li>
+                </ul>
+            </nav>
+
+        </div>
+        <div class="sub-menu-bg"></div>
+    </div>
+
+    <script type="text/javascript">
+        // 대메뉴 매핑
+        $('.first-menu').each((idx, tag) => {
+            if(
+                $(tag).attr('data-mid') === '02020000'
+                || $(tag).attr('data-mid') === '02000000'
+            ){
+                $(tag).addClass('active');
+            }
+        });
+
+        // 서브메뉴 매핑
+        $('.btn-menu-link').each((idx, tag) => {
+            if($(tag).attr('data-mid') === '02020000'){
+                $(tag).css('font-weight', 'bold');
+            }
+        });
+
+
+    </script>
+
+
+    <!--  컨펌 팝업  -->
+	
+
+
+
+<div class="modal-container modal-alert " data-modal="common-confirm-modal">
+    <section class="modal"  role="dialog">
+        <div class="modal-head">
+            <h1 class="head-title" id="confirmTitle"></h1>
+        </div>
+        <div class="modal-body" >
+            <div class="modal-body-container">
+                <p id="confirmContents"></p>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <ul class="btn-group">
+                <li><button type="button" class="btn secondary modal-close btn-round" id="confirmCencelBtn">취소</button></li>
+                <li><button type="button" class="btn secondary modal-close btn-navy btn-round" id="confirmOkBtn">확인</button></li>
+            </ul>
+        </div>
+    </section>
+</div>
+<button type="button" class="btn-modal" data-src="common-confirm-modal" id="confirmCallBtn"></button>
+
+<script type="text/javascript">
+
+let currentOkEventHandler = null;
+let currentCencelEventHandler = null;
+
+function commonConfirmInit(title, content, okEvent, cencelEvent) { 
+	$("#confirmTitle").html(title);
+	$("#confirmContents").html(content);
+
+	if(okEvent == '') {
+		okEvent = function defaultOk() {return true;}
+	}
+	
+	if(cencelEvent == '') {
+		cencelEvent = function defaultCencel() {return false;}
+    }
+	
+	
+    //확인버튼  event 변경
+    if(currentOkEventHandler) {
+        $("#confirmOkBtn").off("click");
+    }
+    currentOkEventHandler = okEvent;
+    $("#confirmOkBtn").on("click",currentOkEventHandler);
+    
+    //취소버튼  event 변경
+    if(currentOkEventHandler) {
+        $("#confirmCencelBtn").off("click",currentCencelEventHandler);
+    }
+    currentCencelEventHandler = cencelEvent;
+    $("#confirmCencelBtn").on("click",currentCencelEventHandler);
+    
+    $("#confirmCallBtn").click();
+}
+</script>
+
+
+</header>
+
+
+<body onsubmit="return false;">
+	
+	<div id="wrap" class="full-page">
+		
+
+
+
+<link rel="stylesheet" type="text/css" href="/resources/portal/js/lib/example/default.css?20250515">
+<link rel="stylesheet" type="text/css" href="/resources/portal/js/lib/example/atom-one-dark-reasonable.css?20250515">
+
+<script type="text/javascript" src="/resources/portal/js/interation.js?20250515" ></script>
+<script type="text/javascript" src="/resources/portal/js/lib/example/highlight.min.js"></script>
+<script type="text/javascript" src="/resources/portal/js/lib/example/highlightjs-line-numbers.min.js"></script>
+
+<!-- EXCEL JS  -->
+<script type="text/javascript" src="/resources/portal/js/lib/exceljs.min.js?20250710"></script>
+
+<!-- PDFmake JS  -->
+
+
+
+
+<!-- jsPdf JS  -->
+<script type="text/javascript" src="/resources/portal/js/lib/jspdf.umd.min.js?20250710"></script>
+<script type="text/javascript" src="/resources/portal/js/lib/jspdf.plugin.autotable.min.js?20250710"></script>
+<script type="text/javascript" src="/resources/portal/js/lib/jspdf_fonts.js?20250710"></script>
+
+<main id="contents-guide">
+    <div id="apiGuide-wrap" style="grid-template-columns: 30rem 1fr;">
+        <section class="guide-menu-area">
+
+            <div class="guide-search-wrap">
+                <span>
+                    <input type="text" title="API명을 입력하세요" placeholder="API명을 입력하세요" id="searchApiName" onkeyup="searchApiEvent()" autocomplete="off">
+                    <button type="button" onclick="searchApi('')"></button>
+                </span>
+            </div>
+
+            <section class=guide-download>
+                <div class="txt">API 명세서 다운로드</div>
+                <ul>
+                    <li><button type="button" class="guide-icon-01" id="btnDownloadExcel"><span hidden>엑셀</span></button></li>
+                    <li><button type="button" class="guide-icon-02" id="btnDownloadBtnPdf"><span hidden>PDF</span></button></li>
+                </ul>
+            </section>
+
+            <section class="guide-menu-wrap" id="apiGuideListSection">
+                <ul >
+                
+                    
+                        
+                    <li class="guide-menu on">
+                        <a href="javascript:void(0)" class="guide-menu-a" onclick="apiGuideSelect('CERT_TP', this,'OAuth 인증')">OAuth 인증</a>
+                        <ul data-dropDownMenu="CERT_TP">
+                        
+                        
+                    
+                
+                    
+                        
+                        
+                            <li id="guideTpItem_a1"><a href="javascript:void(0)" onclick="apiGuideSelect('a1', this,'접근토큰발급')">접근토큰발급 </a></li>
+                        
+                        
+                    
+                
+                    
+                        
+                        
+                            <li id="guideTpItem_a2"><a href="javascript:void(0)" onclick="apiGuideSelect('a2', this,'접근토큰폐기')">접근토큰폐기 </a></li>
+                        
+                        </ul>
+                    </li>
+                        
+                        
+                    
+                
+                    
+                        
+                    <li class="guide-menu on">
+                        <a href="javascript:void(0)" class="guide-menu-a" onclick="apiGuideSelect('DS_JOB_TP', this,'국내주식')">국내주식</a>
+                        <ul data-dropDownMenu="DS_JOB_TP">
+                        
+                        
+                    
+                
+                    
+                        
+                        
+                            <li id="guideTpItem_08"><a href="javascript:void(0)" onclick="apiGuideSelect('08', this,'계좌')">계좌 </a></li>
+                        
+                        
+                    
+                
+                    
+                        
+                        
+                            <li id="guideTpItem_17"><a href="javascript:void(0)" onclick="apiGuideSelect('17', this,'공매도')">공매도 </a></li>
+                        
+                        
+                    
+                
+                    
+                        
+                        
+                            <li id="guideTpItem_03"><a href="javascript:void(0)" onclick="apiGuideSelect('03', this,'기관/외국인')">기관/외국인 </a></li>
+                        
+                        
+                    
+                
+                    
+                        
+                        
+                            <li id="guideTpItem_12"><a href="javascript:void(0)" onclick="apiGuideSelect('12', this,'대차거래')">대차거래 </a></li>
+                        
+                        
+                    
+                
+                    
+                        
+                        
+                            <li id="guideTpItem_05"><a href="javascript:void(0)" onclick="apiGuideSelect('05', this,'순위정보')">순위정보 </a></li>
+                        
+                        
+                    
+                
+                    
+                        
+                        
+                            <li id="guideTpItem_02"><a href="javascript:void(0)" onclick="apiGuideSelect('02', this,'시세')">시세 </a></li>
+                        
+                        
+                    
+                
+                    
+                        
+                        
+                            <li id="guideTpItem_16"><a href="javascript:void(0)" onclick="apiGuideSelect('16', this,'신용주문')">신용주문 </a></li>
+                        
+                        
+                    
+                
+                    
+                        
+                        
+                            <li id="guideTpItem_14"><a href="javascript:void(0)" onclick="apiGuideSelect('14', this,'실시간시세')">실시간시세 </a></li>
+                        
+                        
+                    
+                
+                    
+                        
+                        
+                            <li id="guideTpItem_04"><a href="javascript:void(0)" onclick="apiGuideSelect('04', this,'업종')">업종 </a></li>
+                        
+                        
+                    
+                
+                    
+                        
+                        
+                            <li id="guideTpItem_15"><a href="javascript:void(0)" onclick="apiGuideSelect('15', this,'조건검색')">조건검색 </a></li>
+                        
+                        
+                    
+                
+                    
+                        
+                        
+                            <li id="guideTpItem_01"><a href="javascript:void(0)" onclick="apiGuideSelect('01', this,'종목정보')">종목정보 </a></li>
+                        
+                        
+                    
+                
+                    
+                        
+                        
+                            <li id="guideTpItem_13"><a href="javascript:void(0)" onclick="apiGuideSelect('13', this,'주문')">주문 </a></li>
+                        
+                        
+                    
+                
+                    
+                        
+                        
+                            <li id="guideTpItem_07"><a href="javascript:void(0)" onclick="apiGuideSelect('07', this,'차트')">차트 </a></li>
+                        
+                        
+                    
+                
+                    
+                        
+                        
+                            <li id="guideTpItem_11"><a href="javascript:void(0)" onclick="apiGuideSelect('11', this,'테마')">테마 </a></li>
+                        
+                        
+                    
+                
+                    
+                        
+                        
+                            <li id="guideTpItem_06"><a href="javascript:void(0)" onclick="apiGuideSelect('06', this,'ELW')">ELW </a></li>
+                        
+                        
+                    
+                
+                    
+                        
+                        
+                            <li id="guideTpItem_10"><a href="javascript:void(0)" onclick="apiGuideSelect('10', this,'ETF')">ETF </a></li>
+                        
+                        </ul>
+                    </li>
+                        
+                        
+                    
+                
+                </ul>
+            </section>
+
+        </section>
+
+        <section class="guide-contents" id="apiGuideContent">
+            
+
+
+
+
+<section class="guide-con">
+	<div class="guide-title">
+		<h1 id="guideGrpNm">OAuth 인증</h1>
+		<div class="giude-title-bottom">
+			<ul class="icon-info-type-01">
+				<li class="icon-01 icon">REST</li>
+			</ul>
+			<p id="guideGrpTpNm">접근토큰발급</p>
+		</div>
+	</div>
+	
+	<div class="guide-title-01">
+		<h3>기본 정보</h3>
+		
+	</div>
+	
+	<div class="table-type-02 mt30">
+		<table>
+			<caption>API 정보 안내 표</caption>
+			<colgroup>
+				<col style="width: 20rem">
+				<col style="width: auto">
+			</colgroup>
+			<tbody>
+				<tr>
+					<th scope="row">Method</th>
+					<td>POST</td>
+				</tr>
+				<tr>
+					<th scope="row">운영 도메인 </th>
+					<td>
+						
+							
+								https://api.kiwoom.com
+							
+							
+						
+					</td>
+				</tr>
+				<tr>
+					<th scope="row">모의투자 도메인</th>
+					<td>https://mockapi.kiwoom.com<span style="font-weight: bold;">(KRX만 지원가능)</span></td>
+				</tr>
+				<tr>
+					<th scope="row">URL</th>
+					<td>/oauth2/token</td>
+				</tr>
+				<tr>
+					<th scope="row">Format</th>
+					<td>JSON</td>
+				</tr>
+				<tr>
+					<th scope="row">Content-Type</th>
+					<td>application/json;charset=UTF-8</td>
+				</tr>
+			</tbody>
+		</table>
+	</div>
+	
+	
+	<div class="guide-menu-title">
+		<h3>다른 TR 확인하기</h3>
+	</div>
+	<div class="guide-menu on">
+		<div class="guide-menu-top">
+			<span>TR명</span>
+			<a href="javascript: void(0)" onclick="downList.open('apiMenudropDown')" id="selectTr">
+				<h3>접근토큰 발급</h3>
+				au10001
+			</a>
+		</div>
+		<div class="guide-menu-list" data-dropdown="apiMenudropDown" style="top: 69px; display: block;">
+			<ul>
+				
+				<li>
+					<a href="javascript:void(0)" onclick="apiGuideTrIo('au10001','접근토큰 발급','a1')">
+						<span>접근토큰 발급</span>
+						<em>au10001</em>
+					</a>
+				</li>
+				
+			</ul>
+		</div>
+	</div>
+	
+	
+	<div id="apiGuideTrIo">
+		
+
+
+
+    <div class="guide-title-01">
+        <h3>요청</h3>
+        
+    </div>
+    
+    <div class="guide-title-01">
+        <h5>Body</h5>
+    </div>
+
+    <div class="table-type-03 mt25">
+        <table>
+            <caption>Body 정보 표</caption>
+            <colgroup>
+                <col style="width: 20rem">
+                <col style="width: 11.5rem">
+                <col style="width: 10rem" span=3>
+                <col style="width: auto">
+            </colgroup>
+            <thead>
+            <tr>
+                <th scope="col">Element</th>
+                <th scope="col">한글명</th>
+                <th scope="col">type</th>
+                <th scope="col">Required</th>
+                <th scope="col">Length</th>
+                <th scope="col">Description</th>
+            </tr>
+            </thead>
+            <tbody>
+            
+                <tr>
+                    <td class="al-l">grant_type</td>
+                    <td class="al-l">grant_type</td>
+                    <td>String</td>
+                    <td>Y</td>
+                    <td></td>
+                    <td class="al-l">client_credentials 입력</td>
+                </tr>
+            
+                <tr>
+                    <td class="al-l">appkey</td>
+                    <td class="al-l">앱키</td>
+                    <td>String</td>
+                    <td>Y</td>
+                    <td></td>
+                    <td class="al-l"></td>
+                </tr>
+            
+                <tr>
+                    <td class="al-l">secretkey</td>
+                    <td class="al-l">시크릿키</td>
+                    <td>String</td>
+                    <td>Y</td>
+                    <td></td>
+                    <td class="al-l"></td>
+                </tr>
+            
+            </tbody>
+        </table>
+    </div>
+    <div class="guide-title-01">
+        <h3>응답</h3>
+        
+    </div>
+    
+    <div class="guide-title-01">
+        <h5>Body </h5>
+    </div>
+
+    <div class="table-type-03 mt25">
+        <table>
+            <caption>Body 정보 표</caption>
+            <colgroup>
+                <col style="width: 20rem">
+                <col style="width: 11.5rem">
+                <col style="width: 10rem" span=3>
+                <col style="width: auto">
+            </colgroup>
+            <thead>
+            <tr>
+                <th scope="col">Element</th>
+                <th scope="col">한글명</th>
+                <th scope="col">type</th>
+                <th scope="col">Required</th>
+                <th scope="col">Length</th>
+                <th scope="col">Description</th>
+            </tr>
+            </thead>
+            <tbody>
+            
+                <tr>
+                    <td class="al-l">expires_dt</td>
+                    <td class="al-l">만료일</td>
+                    <td>
+                    	
+                    	String
+                    </td>
+                    <td>Y</td>
+                    <td></td>
+                    <td class="al-l"></td>
+                </tr>
+            
+                <tr>
+                    <td class="al-l">token_type</td>
+                    <td class="al-l">토큰타입</td>
+                    <td>
+                    	
+                    	String
+                    </td>
+                    <td>Y</td>
+                    <td></td>
+                    <td class="al-l"></td>
+                </tr>
+            
+                <tr>
+                    <td class="al-l">token</td>
+                    <td class="al-l">접근토큰</td>
+                    <td>
+                    	
+                    	String
+                    </td>
+                    <td>Y</td>
+                    <td></td>
+                    <td class="al-l"></td>
+                </tr>
+            
+            </tbody>
+        </table>
+    </div>
+
+
+
+
+	</div>
+</section>
+<section class="guide-example" id="apiGuideExample">
+	
+
+
+<script type="text/javascript" src="/resources/portal/js/interation.js?20250515" defer></script>
+
+<style>
+    .hljs-ln * {
+        font-size: 13px !important;
+        font-weight: 300;
+        letter-spacing: 0;
+    }
+</style>
+
+<div class="exTypeBox">
+    <div class="exTypeBox-top">
+        <div class="exTypeBox-title " data-text-change-target="chgTxtTarget" data-icon="icon-01">Python</div>
+        <ul class="exType-tab tab-menu-area">
+            <li><a href="javascript:void(0)" role="tab" aria-selected="true" aria-controls="panel-1" id="tab-1"
+                   class="on" data-text-change="chgTxtTarget" data-icon="icon-01" data-icon-target="exTypeBox-title">Python</a>
+            </li>
+            <li><a href="javascript:void(0)" role="tab" aria-selected="false" aria-controls="panel-2" id="tab-2"
+                   data-text-change="chgTxtTarget" data-icon="icon-02" data-icon-target="exTypeBox-title">Java</a></li>
+            <li><a href="javascript:void(0)" role="tab" aria-selected="false" aria-controls="panel-3" id="tab-3"
+                   data-text-change="chgTxtTarget" data-icon="icon-03" data-icon-target="exTypeBox-title">Javascript</a>
+            </li>
+        </ul>
+    </div>
+    <div>
+        <div id="panel-1" role="tabpanel" aria-labelledby="tab-1" style="margin: 12px auto 0;">
+            <div class="apiSampleCodeTop">
+                <button type="button" onclick="copyClibBoard(this)"></button>
+            </div>
+            <pre class="apiSampleCode" style="display:flex;">
+                <code class="language-python" id="pythonSamp" contenteditable="false"></code>
+            </pre>
+        </div>
+        <div id="panel-2" role="tabpanel" aria-labelledby="tab-2" style="margin: 12px auto 0;">
+            <div class="apiSampleCodeTop">
+                <button type="button" onclick="copyClibBoard(this)"></button>
+            </div>
+            <pre class="apiSampleCode" style="display:flex;">
+                <code class="language-java" id="javaSamp" contenteditable="false"></code>
+            </pre>
+        </div>
+        <div id="panel-3" role="tabpanel" aria-labelledby="tab-3" style="margin: 12px auto 0;">
+            <div class="apiSampleCodeTop">
+                <button type="button" onclick="copyClibBoard(this)"></button>
+            </div>
+            <pre class="apiSampleCode" style="display:flex;">
+                <code class="language-javascript" id="jsSamp" contenteditable="false"></code>
+            </pre>
+        </div>
+    </div>
+</div>
+
+
+<div class="example-area on">
+
+    <div class="example-area-top">
+        <p>Example</p>
+        <button type="button" onclick="downMenuList.open('apiMenudropDown9', 'example-area-content-wrap')"><span
+                class="blind">열림</span></button>
+    </div>
+    <div class="example-area-content-wrap" data-dropDownMenu="apiMenudropDown9">
+        <div class="example-area-content">
+            <button type="button" class="top-title" onclick="downMenuList.open('apiMenudropDown11')">Request</button>
+            <div class="example-content" data-dropDownMenu="apiMenudropDown11">
+                <div class="codeBox">
+                    <pre><code class="language-javascript" id="exampleReqBody">{
+	"grant_type" : "client_credentials",
+	"appkey" : "AxserEsdcredca.....",
+	"secretkey" : "SEefdcwcforehDre2fdvc...."
+}</code></pre>
+                </div>
+            </div>
+        </div>
+
+        <div class="example-area-content">
+            <button type="button" class="top-title" onclick="downMenuList.open('apiMenudropDown8')">Response</button>
+            <div class="example-content" data-dropDownMenu="apiMenudropDown8">
+                <div class="codeBox">
+                    <pre><code class="language-javascript" id="responseCode">{
+	"expires_dt":"20241107083713",
+	"token_type":"bearer",
+	"token":"WQJCwyqInphKnR3bSRtB9NE1lv..."
+	"return_code":0,
+	"return_msg":"정상적으로 처리되었습니다"
+}</code></pre>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script type="text/javascript">
+    /***********퍼블 소스 **********/
+    tab.init();
+    /**************************/
+
+    // dom 문서 로딩 후
+    $(document).ready(function (){
+        // 샘플 코드 init
+        initSampleCode();
+    });
+
+    // 샘플 코드 생성
+    async function initSampleCode(){
+
+        // 예제 파라미터 셋팅
+        let param = {"exReqBody":"{\n\t\"grant_type\" : \"client_credentials\",\n\t\"appkey\" : \"AxserEsdcredca.....\",\n\t\"secretkey\" : \"SEefdcwcforehDre2fdvc....\"\n}","inOutTp":"요청","bodyData":[{"itemId":"grant_type","sortOrd":1.0,"sampData":"client_credentials","inptOutputTp":"I","esntYn":"Y","type":"String","headBodyTp":"B","itemNm":"grant_type","lngt":null,"itemDc":"client_credentials 입력"},{"itemId":"appkey","sortOrd":2.0,"sampData":"AxserEsdcredca.....","inptOutputTp":"I","esntYn":"Y","type":"String","headBodyTp":"B","itemNm":"앱키","lngt":null,"itemDc":""},{"itemId":"secretkey","sortOrd":3.0,"sampData":"SEefdcwcforehDre2fdvc....","inptOutputTp":"I","esntYn":"Y","type":"String","headBodyTp":"B","itemNm":"시크릿키","lngt":null,"itemDc":""}]};
+        param.bodyData.map(obj => {
+            const transformObj = {};
+            for(const key in obj) {
+                transformObj[key] = obj[key] === null? '':obj[key];
+            }
+            return transformObj;
+        })
+
+        // 파이썬 예제 소스 생성
+        let content_python = initPythonSampleCode(param);
+        let content_java = initJavaSampleCode(param);
+        let content_js = initJsSampleCode(param);
+
+        // 코드 영역 예제 소스 적용
+        $('#pythonSamp').text(content_python);
+        $('#javaSamp').text(content_java);
+        $('#jsSamp').text(content_js);
+
+        // 토큰 발급 API 예제일 경우
+        if(true){
+            let responseBody = '';
+            responseBody += '{\n';
+            responseBody += '\t"grant_type": "client_credentials",\n';
+            responseBody += '\t"appkey": "AxserEsdcredca.....",\n';
+            responseBody += '\t"secretkey": "SEefdcwcforehDre2fdvc...."\n';
+            responseBody += '}';
+
+            // response body 영역 코드 셋팅
+            $('#exampleReqBody').text(responseBody);
+        }else if(false){
+            let responseBody = '';
+            responseBody += '{\n';
+            responseBody += '\t"appkey": "AxserEsdcredca.....",\n';
+            responseBody += '\t"secretkey": "SEefdcwcforehDre2fdvc....",\n';
+            responseBody += '\t"token": "WQJCwyqInphKnR3bSRtB9NE1lv..."\n';
+            responseBody += '}';
+
+            // response body 영역 코드 셋팅
+            $('#exampleReqBody').text(responseBody);
+        }
+
+        // highlight 생성
+        initCodeHighlight();
+
+        // appKey, secretKey 입력 이벤트
+        $('.inputUserKey').on('input', function (e){
+            let inputAppkey = $('#userAppKey').val();
+            let inputSecretKey = $('#userSecretKey').val();
+            let inputToken = $('#userAccessToken').val();
+
+            let content_python = initPythonSampleCode({data: param});
+            let content_java = initJavaSampleCode({data: param});
+            let content_js = initJsSampleCode({data: param});
+
+            // 예제 소스 부분 코드 셋팅
+            $('#pythonSamp').text(content_python);
+            $('#javaSamp').text(content_java);
+            $('#jsSamp').text(content_js);
+
+            // 토큰 발급 API 예제일 경우
+            if(true){
+                let responseBody = '';
+                responseBody += '{\n';
+                responseBody += '\t"grant_type": "client_credentials"\n';
+                responseBody += '\t"appkey": "AxserEsdcredca....."\n';
+                responseBody += '\t"secretkey": "SEefdcwcforehDre2fdvc...."\n';
+                responseBody += '}';
+
+                // response body 영역 코드 셋팅
+                $('#exampleReqBody').text(responseBody);
+            }else if(false){
+                let responseBody = '';
+                responseBody += '{\n';
+                responseBody += '\t"appkey": "AxserEsdcredca....."\n';
+                responseBody += '\t"secretkey": "SEefdcwcforehDre2fdvc...."\n';
+                responseBody += '\t"token": "WQJCwyqInphKnR3bSRtB9NE1lv..."\n';
+                responseBody += '}';
+
+                // response body 영역 코드 셋팅
+                $('#exampleReqBody').text(responseBody);
+            }
+
+            // highlight 생성
+            initCodeHighlight();
+        });
+    }
+
+    function initPythonSampleCode(data){
+        let html = "";
+
+        // REST API 예제 소스
+        if(true){
+            html += "import requests\n";
+            html += "import json\n";
+            html += "\n";
+            html += "# 접근토큰 발급\n";
+
+            if(false && true) {
+                html += "def fn_au10001(token, data, cont_yn='N', next_key=''):\n";
+            }else{
+                html += "def fn_au10001(data):\n";
+            }
+
+            html += "\t# 1. 요청할 API URL\n";
+            html += "\t#host = 'https://mockapi.kiwoom.com' # 모의투자\n";
+            if(true){
+                html += "\thost = 'https://api.kiwoom.com' # 실전투자\n";
+            }else{
+                html += "\thost = 'https://apidev.kiwoom.com' # 실전투자\n";
+            }
+            html += "\tendpoint = '/oauth2/token'\n";
+            html += "\turl =  host + endpoint\n";
+            html += "\n";
+            html += "\t# 2. header 데이터\n";
+            html += "\theaders = {\n";
+            html += "\t\t'Content-Type': 'application/json;charset=UTF-8', # 컨텐츠타입\n";
+
+            // 토큰발급, 토큰해지가 아니면
+            if(false) {
+                html += "\t\t'authorization': f'Bearer {token}', # 접근토큰\n";
+                html += "\t\t'cont-yn': cont_yn, # 연속조회여부\n";
+                html += "\t\t'next-key': next_key, # 연속조회키\n";
+                html += "\t\t'api-id': 'au10001', # TR명\n";
+            }
+
+            html += "\t}\n";
+            html += "\n";
+            html += "\t# 3. http POST 요청\n";
+            html += "\tresponse = requests.post(url, headers=headers, json=data)\n";
+            html += "\n";
+            html += "\t# 4. 응답 상태 코드와 데이터 출력\n";
+            html += "\tprint('Code:', response.status_code)\n";
+            html += "\tprint('Header:', json.dumps({key: response.headers.get(key) for key in ['next-key', 'cont-yn', 'api-id']}, indent=4, ensure_ascii=False))\n";
+            html += "\tprint('Body:', json.dumps(response.json(), indent=4, ensure_ascii=False))  # JSON 응답을 파싱하여 출력\n";
+            html += "\n";
+            html += "# 실행 구간\n";
+            html += "if __name__ == '__main__':\n";
+
+            if(false && true) {
+                html += "\t# 1. 토큰 설정\n";
+                html += "\tMY_ACCESS_TOKEN = '사용자 AccessToken' # 접근토큰\n";
+                html += "\n";
+                html += "\t# 2. 요청 데이터\n";
+            }else{
+                html += "\t# 1. 요청 데이터\n";
+            }
+
+                html += "\tparams = {\n";
+            // 토큰 발급
+            if(true){
+                html += "\t\t'grant_type': 'client_credentials',  # grant_type\n";
+                html += "\t\t'appkey': 'AxserEsdcredca.....',  # 앱키\n";
+                html += "\t\t'secretkey': 'SEefdcwcforehDre2fdvc....',  # 시크릿키\n";
+                // 토큰 폐기
+            }else if(false){
+                html += "\t\t'appkey': 'AxserEsdcredca.....',  # 앱키\n";
+                html += "\t\t'secretkey': 'SEefdcwcforehDre2fdvc....',  # 시크릿키\n";
+                html += "\t\t'token': 'WQJCwyqInphKnR3bSRtB9NE1lv...',  # 토큰\n";
+            }else{
+                for(let i = 0; i < data.bodyData.length; ++ i){
+                    html +=  "\t\t'" + data.bodyData[i].itemId +"': '"+ data.bodyData[i].sampData + "', # " + data.bodyData[i].itemNm + " "+ (data.bodyData[i].itemDc? data.bodyData[i].itemDc.replaceAll('<br/>', ' ') : '') +  "\n";
+                }
+            }
+
+            html += "\t}\n";
+            html += "\n";
+
+            if(false && true) {
+                html += "\t# 3. API 실행\n";
+                html += "\tfn_au10001(token=MY_ACCESS_TOKEN, data=params)\n";
+                html += "\n";
+                html += "\t# next-key, cont-yn 값이 있을 경우\n";
+                html += "\t# fn_au10001(token=MY_ACCESS_TOKEN, data=params, cont_yn='Y', next_key='nextkey..')\n";
+            }else{
+                html += "\t# 2. API 실행\n";
+                html += "\tfn_au10001(data=params)\n";
+            }
+        }else{
+            // WEBSOCKET 예제 소스
+            html += "";
+            html += "import asyncio \n";
+            html += "import websockets\n";
+            html += "import json\n";
+            html += "\n";
+            html += "# socket 정보\n";
+            html += "# SOCKET_URL = 'https://mockapi.kiwoom.com/oauth2/token'  # 모의투자 접속 URL\n";
+            if(true){
+                html += "SOCKET_URL = 'https://api.kiwoom.com/oauth2/token'  # 접속 URL\n";
+            }else{
+                html += "SOCKET_URL = 'https://apidev.kiwoom.com/oauth2/token'  # 접속 URL\n";
+            }
+            html += "ACCESS_TOKEN = '사용자 AccessToken'  # 고객 Access Token\n";
+            html += "\n";
+            html += "class WebSocketClient:\n";
+            html += "\tdef __init__(self, uri):\n";
+            html += "\t\tself.uri = uri\n";
+            html += "\t\tself.websocket = None\n";
+            html += "\t\tself.connected = False\n";
+            html += "\t\tself.keep_running = True\n";
+            html += "\n";
+            html += "\t# WebSocket 서버에 연결합니다.\n";
+            html += "\tasync def connect(self):\n";
+            html += "\t\ttry:\n";
+            html += "\t\t\tself.websocket = await websockets.connect(self.uri)\n";
+            html += "\t\t\tself.connected = True\n";
+            html += "\t\t\tprint(\"서버와 연결을 시도 중입니다.\")\n";
+            html += "\n";
+            html += "\t\t\t# 로그인 패킷\n";
+            html += "\t\t\tparam = {\n";
+            html += "\t\t\t\t'trnm': 'LOGIN',\n";
+            html += "\t\t\t\t'token': ACCESS_TOKEN\n";
+            html += "\t\t\t}\n";
+            html += "\n";
+            html += "\t\t\tprint('실시간 시세 서버로 로그인 패킷을 전송합니다.')\n";
+            html += "\t\t\t# 웹소켓 연결 시 로그인 정보 전달\n";
+            html += "\t\t\tawait self.send_message(message=param)\n";
+            html += "\n";
+            html += "\t\texcept Exception as e:\n";
+            html += "\t\t\tprint(f'Connection error: {e}')\n";
+            html += "\t\t\tself.connected = False\n";
+            html += "\n";
+            html += "\t# 서버에 메시지를 보냅니다. 연결이 없다면 자동으로 연결합니다.\n";
+            html += "\tasync def send_message(self, message):\n";
+            html += "\t\tif not self.connected:\n";
+            html += "\t\t\tawait self.connect()  # 연결이 끊어졌다면 재연결\n";
+            html += "\t\tif self.connected:\n";
+            html += "\t\t\t# message가 문자열이 아니면 JSON으로 직렬화\n";
+            html += "\t\t\tif not isinstance(message, str):\n";
+            html += "\t\t\t\tmessage = json.dumps(message)\n";
+            html += "\n";
+            html += "\t\tawait self.websocket.send(message)\n";
+            html += "\t\tprint(f'Message sent: {message}')\n";
+            html += "\n";
+            html += "\t# 서버에서 오는 메시지를 수신하여 출력합니다.\n";
+            html += "\tasync def receive_messages(self):\n";
+            html += "\t\twhile self.keep_running:\n";
+            html += "\t\t\ttry:\n";
+            html += "\t\t\t\t# 서버로부터 수신한 메시지를 JSON 형식으로 파싱\n";
+            html += "\t\t\t\tresponse = json.loads(await self.websocket.recv())\n";
+            html += "\n";
+            html += "\t\t\t\t# 메시지 유형이 LOGIN일 경우 로그인 시도 결과 체크\n";
+            html += "\t\t\t\tif response.get('trnm') == 'LOGIN':\n";
+            html += "\t\t\t\t\tif response.get('return_code') != 0:\n";
+            html += "\t\t\t\t\t\tprint('로그인 실패하였습니다. : ', response.get('return_msg'))\n";
+            html += "\t\t\t\t\t\tawait self.disconnect()\n";
+            html += "\t\t\t\t\telse:\n";
+            html += "\t\t\t\t\t\tprint('로그인 성공하였습니다.')\n";
+
+            if(false){
+                html += "\t\t\t\t\t\tprint('조건검색 목록조회 패킷을 전송합니다.')\n";
+                html += "\t\t\t\t\t\t# 로그인 패킷\n";
+                html += "\t\t\t\t\t\tparam = {\n";
+                html += "\t\t\t\t\t\t\t'trnm': 'CNSRLST'\n";
+                html += "\t\t\t\t\t\t}\n";
+                html += "\t\t\t\t\t\tawait self.send_message(message=param)\n";
+            }
+
+            html += "\n";
+            html += "\t\t\t\t# 메시지 유형이 PING일 경우 수신값 그대로 송신\n";
+            html += "\t\t\t\telif response.get('trnm') == 'PING':\n";
+            html += "\t\t\t\t\tawait self.send_message(response)\n";
+            html += "\n";
+            html += "\t\t\t\tif response.get('trnm') != 'PING':\n";
+            html += "\t\t\t\t\tprint(f'실시간 시세 서버 응답 수신: {response}')\n";
+            html += "\n";
+            html += "\t\t\texcept websockets.ConnectionClosed:\n";
+            html += "\t\t\t\tprint('Connection closed by the server')\n";
+            html += "\t\t\t\tself.connected = False\n";
+            html += "\t\t\t\tawait self.websocket.close()\n";
+            html += "\n";
+            html += "\t# WebSocket 실행\n";
+            html += "\tasync def run(self):\n";
+            html += "\t\tawait self.connect()\n";
+            html += "\t\tawait self.receive_messages()\n";
+            html += "\n";
+            html += "\t# WebSocket 연결 종료\n";
+            html += "\tasync def disconnect(self):\n";
+            html += "\t\tself.keep_running = False\n";
+            html += "\t\tif self.connected and self.websocket:\n";
+            html += "\t\t\tawait self.websocket.close()\n";
+            html += "\t\t\tself.connected = False\n";
+            html += "\t\t\tprint('Disconnected from WebSocket server')\n";
+            html += "\n";
+            html += "async def main():\n";
+            html += "\t# WebSocketClient 전역 변수 선언\n";
+            html += "\twebsocket_client = WebSocketClient(SOCKET_URL)\n";
+            html += "\n";
+            html += "\t# WebSocket 클라이언트를 백그라운드에서 실행합니다.\n";
+            html += "\treceive_task = asyncio.create_task(websocket_client.run())\n";
+            html += "\n";
+            html += "\t# 실시간 항목 등록\n";
+            html += "\tawait asyncio.sleep(1)\n";
+            html += "\tawait websocket_client.send_message({ \n";
+
+            let listYn = false;
+            for(let i = 0; i < data.bodyData.length; ++ i){
+                if(data.bodyData[i].type == 'LIST'){
+                    listYn = true;
+                    html +=  "\t\t'" + data.bodyData[i].itemId +"': [{ # " + data.bodyData[i].itemNm + "\n";
+                }else if(data.bodyData[i].itemId.indexOf('-') >= 0){
+                    html +=  "\t\t\t'" + data.bodyData[i].itemId.replace('-','').trim() +"': ['"+ data.bodyData[i].sampData + "'], # " + data.bodyData[i].itemNm + "\n";
+                }else {
+                    html +=  "\t\t'" + data.bodyData[i].itemId +"': '"+ data.bodyData[i].sampData + "', # " + data.bodyData[i].itemNm + "\n";
+                }
+            }
+            if(listYn){
+                html += "\t\t}]\n";
+            }
+            html += "\t})\n";
+            html += "\n";
+            html += "\t# 수신 작업이 종료될 때까지 대기\n";
+            html += "\tawait receive_task\n";
+            html += "\n";
+            html += "# asyncio로 프로그램을 실행합니다.\n";
+            html += "if __name__ == '__main__':\n";
+            html += "\tasyncio.run(main())\n";
+        }
+
+        return html;
+    }
+
+    function initJavaSampleCode(data){
+        let html = '';
+        // REST API 일 경우
+        if(true){
+            html+= 'import java.io.OutputStream;\n';
+            html+= 'import java.net.HttpURLConnection;\n';
+            html+= 'import java.net.URL;\n';
+            html+= 'import java.util.Scanner;\n';
+            html+= 'import java.util.Arrays;\n';
+            html+= '\n';
+            html += "// 접근토큰 발급\n";
+            html+= 'public class Main {\n';
+
+            if(false && true) {
+                html+= '\tpublic static void fn_au10001(String token, String jsonData){\n';
+                html+= '\t\tfn_au10001(token, jsonData, "N", "");\n';
+                html+= '\t}\n';
+                html+= '\tpublic static void fn_au10001(String token, String jsonData, String contYn, String nextKey) {\n';
+            }else{
+                html+= '\tpublic static void fn_au10001(String jsonData) {\n';
+            }
+
+            html+= '\t\ttry {\n';
+            html+= '\t\t\t// 1. 요청할 API URL\n';
+            html+= '\t\t\t// String host = "https://mockapi.kiwoom.com"; // 모의투자\n';
+            if(true){
+                html+= '\t\t\tString host = "https://api.kiwoom.com"; // 실전투자\n';
+            }else{
+                html+= '\t\t\tString host = "https://apidev.kiwoom.com"; // 실전투자\n';
+            }
+            html+= '\t\t\tString endpoint = "/oauth2/token";\n';
+            html+= '\t\t\tString urlString = host + endpoint;\n';
+            html+= '\n';
+            html+= '\t\t\tURL url = new URL(urlString);\n';
+            html+= '\t\t\tHttpURLConnection connection = (HttpURLConnection) url.openConnection();\n';
+            html+= '\n';
+            html+= '\t\t\t// 2. Header 데이터 설정\n';
+            html+= '\t\t\tconnection.setRequestMethod("POST"); // 메서드 타입\n';
+            html+= '\t\t\tconnection.setRequestProperty("Content-Type", "application/json;charset=UTF-8"); // 컨텐츠타입\n';
+            if(false){
+                html+= '\t\t\tconnection.setRequestProperty("authorization", "Bearer " + token); // 접근토큰\n';
+                html+= '\t\t\tconnection.setRequestProperty("cont-yn", contYn == null? "N": contYn); // 연속조회여부\n';
+                html+= '\t\t\tconnection.setRequestProperty("next-key", nextKey == null? "": nextKey); // 연속조회키\n';
+                html+= '\t\t\tconnection.setRequestProperty("api-id", "au10001"); // TR명\n';
+            }
+            html+= '\t\t\tconnection.setDoOutput(true);\n';
+            html+= '\n';
+            html+= '\t\t\t// 3. JSON 데이터 전송\n';
+            html+= '\t\t\ttry (OutputStream os = connection.getOutputStream()) {\n';
+            html+= '\t\t\t\tbyte[] input = jsonData.getBytes("utf-8");\n';
+            html+= '\t\t\t\tos.write(input, 0, input.length);\n';
+            html+= '\t\t\t}\n';
+            html+= '\n';
+            html+= '\t\t\t// 4. 응답 헤더 출력\n';
+            html+= '\t\t\tSystem.out.println("Code: "+ connection.getResponseCode());\n';
+            html+= '\t\t\tSystem.out.println("Header:");\n';
+            html+= '\t\t\tString[] headerKeys = {"cont-yn","next-key","api-id"};\n';
+            html+= '\t\t\tconnection.getHeaderFields().forEach((key, value) -> {\n';
+            html+= '\t\t\t\tif(Arrays.asList(headerKeys).contains(key)){\n';
+            html+= '\t\t\t\t\tSystem.out.println("    " + key + ": " + value.get(0));\n';
+            html+= '\t\t\t\t}\n';
+            html+= '\t\t\t});\n';
+            html+= '\n';
+            html+= '\t\t\t// 5. 응답 본문 출력\n';
+            html+= '\t\t\tSystem.out.println("Body:");\n';
+            html+= '\t\t\ttry (Scanner scanner = new Scanner(connection.getInputStream(), "utf-8")) {\n';
+            html+= '\t\t\t\tString responseBody = scanner.useDelimiter("\\\\A").next();\n';
+            html+= '\t\t\t\tSystem.out.println("    " + responseBody);\n';
+            html+= '\t\t\t}\n';
+            html+= '\n';
+            html+= '\t\t} catch (Exception e) {\n';
+            html+= '\t\t\te.printStackTrace();\n';
+            html+= '\t\t}\n';
+            html+= '\t}\n';
+            html+= '\n';
+            html+= '\tpublic static void main(String[] args) {\n';
+
+            if(false && true){
+                html+= '\t\t// 1. 토큰 설정\n';
+                html+= '\t\tString MY_ACCESS_TOKEN = "사용자 AccessToken";\n';
+                html+= '\n';
+                html+= '\t\t// 2. 요청 데이터 JSON 문자열 생성\n';
+            }else{
+                html+= '\t\t// 1. 요청 데이터 JSON 문자열 생성\n';
+            }
+
+            // 파라미터 셋팅
+            let paramData = '';
+            // 토큰 발급
+            if(true){
+                paramData += '{';
+                paramData += '\\"grant_type\\" : \\"client_credentials\\",';
+                paramData += '\\"appkey\\" : \\"AxserEsdcredca.....\\",';
+                paramData += '\\"secretkey\\" : \\"SEefdcwcforehDre2fdvc....\\"';
+                paramData += '}';
+            // 토큰 폐기
+            }else if(false){
+                paramData += '{';
+                paramData += '\\"appkey\\" : \\"AxserEsdcredca.....\\",';
+                paramData += '\\"secretkey\\" : \\"SEefdcwcforehDre2fdvc....\\"';
+                paramData += '\\"token\\" : \\"WQJCwyqInphKnR3bSRtB9NE1lv....\\"';
+                paramData += '}';
+            }else{
+                paramData = '{';
+                for(let i = 0; i < data.bodyData.length; ++ i){
+                    paramData += '\\"' + data.bodyData[i].itemId + '\\" : \\"' + data.bodyData[i].sampData + '\\",';
+                }
+                paramData = paramData.substring(0, paramData.length-1) + '}';
+            }
+
+            html+= '\t\tString jsonData = "'+paramData+'"; // JSON 형식의 문자열 데이터\n';
+            html+= '\n';
+            if(false && true){
+                html+= '\t\t// 3. API 실행\n';
+                html+= '\t\tfn_au10001(MY_ACCESS_TOKEN, jsonData);\n';
+                html += "\n";
+                html+= '\t\t// next-key, cont-yn 값이 있을 경우\n';
+                html+= '\t\t// fn_au10001(MY_ACCESS_TOKEN, jsonData, "Y", "nextkey..");\n';
+            }else{
+                html+= '\t\t// 2. API 실행\n';
+                html+= '\t\tfn_au10001(jsonData);\n';
+            }
+            html+= '\t}\n';
+            html+= '}\n';
+        }else{
+            html += 'import com.google.gson.Gson;\n';
+            html += 'import com.google.gson.JsonArray;\n';
+            html += 'import com.google.gson.JsonObject;\n';
+            html += 'import org.java_websocket.client.WebSocketClient;\n';
+            html += 'import org.java_websocket.handshake.ServerHandshake;\n';
+            html += '\n';
+            html += 'import java.net.URI;\n';
+            html += 'import java.net.URISyntaxException;\n';
+            html += '/*\n';
+            html += '// 해당 예제를 사용하시려면 아래와 같이 추가하시길 바랍니다.\n';
+            html += '\n';
+            html += '// 1. MAVEN -> pom.xml\n';
+            html += '<dependency>\n';
+            html += '\t<groupId>org.java-websocket</groupId>\n';
+            html += '\t<artifactId>Java-WebSocket</artifactId>\n';
+            html += '\t<version>1.5.7</version>\n';
+            html += '\tpendency>\n';
+            html += '<dependency>\n';
+            html += '\t<groupId>com.google.code.gson</groupId>\n';
+            html += '\t<artifactId>gson</artifactId>\n';
+            html += '\t<version>2.11.0</version>\n';
+            html += '</dependency>\n';
+            html += '<dependency>\n';
+            html += '\t<groupId>org.slf4j</groupId>\n';
+            html += '\t<artifactId>slf4j-api</artifactId>\n';
+            html += '\t<version>2.0.16</version>\n';
+            html += '</dependency>\n';
+            html += '\n';
+            html += '// 2. Gradle -> build.gradle\n';
+            html += '// implementation \'org.java-websocket:Java-WebSocket:1.5.3\'\n';
+            html += '// implementation \'com.google.code.gson:gson:2.10\'\n';
+            html += '// implementation \'org.slf4j:slf4j-simple:2.0.7\'\n';
+            html += '*/\n';
+            html += '\n';
+            html += 'public class MyWebSocketClient extends WebSocketClient {\n';
+            html += '\t// private static final String SOCKET_URL = "https://mockapi.kiwoom.com/oauth2/token"; // 모의투자 접속 URL\n';
+            if(true){
+                html += '\tprivate static final String SOCKET_URL = "https://api.kiwoom.com/oauth2/token"; // 접속 URL\n';
+            }else{
+                html += '\tprivate static final String SOCKET_URL = "https://apidev.kiwoom.com/oauth2/token"; // 접속 URL\n';
+            }
+            html += '\tprivate static final String ACCESS_TOKEN = "사용자 AccessToken"; // 발급 받은 accessToken 입력\n';
+            html += '\tprivate static final Gson gson = new Gson();\n';
+            html += '\n';
+            html += '\tpublic MyWebSocketClient(URI serverUri) {\n';
+            html += '\t\tsuper(serverUri);\n';
+            html += '\t}\n';
+            html += '\n';
+            html += '\t@Override\n';
+            html += '\tpublic void onOpen(ServerHandshake handshake) {\n';
+            html += '\t\tSystem.out.println("서버와 연결되었습니다.");\n';
+            html += '\n';
+            html += '\t\t// 로그인 메시지 전송\n';
+            html += '\t\tJsonObject loginMessage = new JsonObject();\n';
+            html += '\t\tloginMessage.addProperty("trnm", "LOGIN");\n';
+            html += '\t\tloginMessage.addProperty("token", ACCESS_TOKEN);\n';
+            html += '\t\tsendMessage(loginMessage);\n';
+            html += '\t}\n';
+            html += '\n';
+            html += '\t@Override\n';
+            html += '\tpublic void onMessage(String message) {\n';
+            html += '\t\ttry {\n';
+            html += '\t\t\tJsonObject response = gson.fromJson(message, JsonObject.class);\n';
+            html += '\t\t\tString trnm = response.has("trnm") ? response.get("trnm").getAsString() : "";\n';
+            html += '\n';
+            html += '\t\t\tif ("LOGIN".equals(trnm)) {\n';
+            html += '\t\t\t\tif (!"0".equals(response.get("return_code").getAsString())) {\n';
+            html += '\t\t\t\t\tSystem.out.println("로그인 실패: " + response.get("return_msg").getAsString());\n';
+            html += '\t\t\t\t\tclose();\n';
+            html += '\t\t\t\t} else {\n';
+            html += '\t\t\t\t\tSystem.out.println("로그인 성공");\n';
+
+            if(false){
+                html += '\n';
+                html += '\t\t\t\t\t// CNSRLST 조건검색 목록 조회 요청\n';
+                html += '\t\t\t\t\tJsonObject conditionListRequest = new JsonObject();\n';
+                html += '\t\t\t\t\tconditionListRequest.addProperty("trnm", "CNSRLST");\n';
+                html += '\t\t\t\t\tsendMessage(conditionListRequest);\n';
+            }
+
+            html += '\t\t\t\t}\n';
+            html += '\t\t\t} else if ("PING".equals(trnm)) {\n';
+            html += '\t\t\t\tsendMessage(response); // 그대로 응답\n';
+            html += '\t\t\t}\n';
+            html += '\n';
+            html += '\t\t\tif (!"PING".equals(trnm)) {\n';
+            html += '\t\t\t\tSystem.out.println("실시간 시세 서버 응답: " + response.toString());\n';
+            html += '\t\t\t}\n';
+            html += '\t\t} catch (Exception e) {\n';
+            html += '\t\t\te.printStackTrace();\n';
+            html += '\t\t}\n';
+            html += '\t}\n';
+            html += '\n';
+            html += '\t@Override\n';
+            html += '\tpublic void onClose(int code, String reason, boolean remote) {\n';
+            html += '\t\tSystem.out.println("연결 종료: " + reason);\n';
+            html += '\t}\n';
+            html += '\n';
+            html += '\t@Override\n';
+            html += '\tpublic void onError(Exception ex) {\n';
+            html += '\t\tSystem.out.println("WebSocket 오류 발생: " + ex.getMessage());\n';
+            html += '\t}\n';
+            html += '\n';
+            html += '\tprivate void sendMessage(JsonObject message) {\n';
+            html += '\t\tif (this.isOpen()) {\n';
+            html += '\t\t\ttry {\n';
+            html += '\t\t\t\tString jsonMessage = gson.toJson(message);\n';
+            html += '\t\t\t\tthis.send(jsonMessage);\n';
+            html += '\t\t\t\tSystem.out.println("Message sent: " + jsonMessage);\n';
+            html += '\t\t\t} catch (Exception e) {\n';
+            html += '\t\t\t\te.printStackTrace();\n';
+            html += '\t\t\t}\n';
+            html += '\t\t}\n';
+            html += '\t}\n';
+            html += '\n';
+            html += '\t public static void main(String[] args) {\n';
+            html += '\t\ttry {\n';
+            html += '\t\t\tMyWebSocketClient client = new MyWebSocketClient(new URI(SOCKET_URL));\n';
+            html += '\t\t\tclient.connectBlocking(); // 동기적으로 연결 대기\n';
+
+            if(false){
+
+            }
+            html += '\t\t\t// 메시지 생성\n';
+            html += '\t\t\tJsonObject registerMessage = new JsonObject();\n';
+            for(let i = 0; i < data.bodyData.length; ++ i){
+                if(data.bodyData[i].itemId.indexOf('-') < 0 && data.bodyData[i].type !== 'LIST'){
+                    html += '\t\t\tregisterMessage.addProperty("'+ data.bodyData[i].itemId  +'", "'+ data.bodyData[i].sampData  +'"); // '+ data.bodyData[i].itemNm  +'\n';
+                }
+            }
+            html += '\n';
+            html += '\t\t\t// "item" 값을 배열로 설정\n';
+            html += '\t\t\tJsonArray itemArray = new JsonArray();\n';
+            for(let i = 0; i < data.bodyData.length; ++ i){
+                if(data.bodyData[i].itemId.indexOf('-') >= 0 && data.bodyData[i].itemId.replace('-','').trim() == 'item'){
+                    html += '\t\t\titemArray.add("'+ data.bodyData[i].sampData  +'"); // '+ data.bodyData[i].itemNm  +'\n';
+                }
+            }
+            html += '\n';
+            html += '\t\t\t// "type" 값을 배열로 설정\n';
+            html += '\t\t\tJsonArray typeArray = new JsonArray();\n';
+            for(let i = 0; i < data.bodyData.length; ++ i){
+                if(data.bodyData[i].itemId.indexOf('-') >= 0 && data.bodyData[i].itemId.replace('-','').trim() === 'type'){
+                    html += '\t\t\ttypeArray.add("'+ data.bodyData[i].sampData  +'"); // '+ data.bodyData[i].itemNm  +'\n';
+                }
+            }
+
+            html += '\n';
+            html += '\t\t\t// 실시간 항목, 종목 jsonObject 등록 \n';
+            html += '\t\t\tJsonObject dataObject = new JsonObject();\n';
+            html += '\t\t\tdataObject.add("item", itemArray);\n';
+            html += '\t\t\tdataObject.add("type", typeArray);\n';
+            html += '\n';
+            html += '\t\t\t// 실시간 항목, 종목 json 형식으로 메시지 저장 \n';
+            html += '\t\t\tregisterMessage.add("data", gson.toJsonTree(new JsonObject[]{dataObject}));\n';
+            html += '\n';
+            html += '\t\t\t// 1초 대기 \n';
+            html += '\t\t\tThread.sleep(1000);\n';
+            html += '\n';
+            html += '\t\t\t// 실시간 메시지 전송\n';
+            html += '\t\t\tclient.sendMessage(registerMessage);\n';
+            html += '\t\t} catch (URISyntaxException | InterruptedException e) {\n';
+            html += '\t\t\te.printStackTrace();\n';
+            html += '\t\t}\n';
+            html += '\t}\n';
+            html += '}\n';
+        }
+
+        return html;
+    }
+
+    function initJsSampleCode(data){
+        let html = '';
+        // REST API 일 경우
+        if(true){
+            html += "// 접근토큰 발급\n";
+            if(false){
+                html += "async function fn_au10001(token, data, cont_yn = 'N', next_key = '') {\n";
+            }else{
+                html += "async function fn_au10001(data) {\n";
+            }
+            html += "\t// 1. 요청할 API URL\n";
+            html += "\t// const host = 'https://mockapi.kiwoom.com'; // 모의투자\n";
+            if(true){
+                html += "\tconst host = 'https://api.kiwoom.com'; // 실전투자\n";
+            }else{
+                html += "\tconst host = 'https://apidev.kiwoom.com'; // 실전투자\n";
+            }
+            html += "\tconst endpoint = '/oauth2/token';\n";
+            html += "\tconst url = host + endpoint;\n";
+            html += "\n";
+            html += "\t// 2. header 데이터\n";
+            html += "\tconst headers = {\n";
+            html += "\t\t'Content-Type': 'application/json;charset=UTF-8', // 컨텐츠 타입\n";
+
+            // 토큰발급, 토큰해지가 아니면
+            if(false){
+                html += "\t\t'authorization': `Bearer ${token}`, // 접근 토큰\n";
+                html += "\t\t'cont-yn': cont_yn, // 연속 조회 여부\n";
+                html += "\t\t'next-key': next_key, // 연속 조회 키\n";
+                html += "\t\t'api-id': 'au10001' // TR명\n";
+            }
+
+            html += "\t};\n";
+            html += "\n";
+            html += "\ttry {\n";
+            html += "\t\t// 3. HTTP POST 요청\n";
+            html += "\t\tconst response = await fetch(url, {\n";
+            html += "\t\t\tmethod: 'POST',\n";
+            html += "\t\t\theaders: headers,\n";
+            html += "\t\t\tbody: JSON.stringify(data)\n";
+            html += "\t\t});\n";
+            html += "\n";
+            html += "\t\t// 응답 헤더 출력\n";
+            html += "\t\tconst responseHeaders = {\n";
+            html += "\t\t\t'next-key': response.headers.get('next-key'),\n";
+            html += "\t\t\t'cont-yn': response.headers.get('cont-yn'),\n";
+            html += "\t\t\t'api-id': response.headers.get('api-id')\n";
+            html += "\t\t};\n";
+            html += "\t\tconsole.log('code :', response.status);\n";
+            html += "\t\tconsole.log('header :', JSON.stringify(responseHeaders, null, 4));\n";
+            html += "\n";
+            html += "\t\t// 응답 본문 출력\n";
+            html += "\t\tconst responseBody = await response.json();\n";
+            html += "\t\tconsole.log('body :', JSON.stringify(responseBody, null, 4));\n";
+            html += "\n";
+            html += "\t} catch (error) {\n";
+            html += "\t\tconsole.error('요청 실패:', error);\n";
+            html += "\t}\n";
+            html += "}\n";
+            html += "\n";
+            html += "// 실행 구간\n";
+            html += "(async () => {\n";
+            if(false && true){
+                html += "\t// 1. 토큰 설정\n";
+                html += "\tconst MY_ACCESS_TOKEN = '사용자 AccessToken'; // 접근 토큰\n";
+                html += "\n";
+                html += "\t// 2. 요청 데이터\n";
+            }else{
+                html += "\t// 1. 요청 데이터\n";
+            }
+            html += "\tconst params = {\n";
+            // 파라미터 정의
+            // 토큰 발급
+            if(true){
+                html += "\t\t'grant_type': 'client_credentials',  // grant_type\n";
+                html += "\t\t'appkey': 'AxserEsdcredca.....',  // 앱키\n";
+                html += "\t\t'secretkey': 'SEefdcwcforehDre2fdvc....',  // 시크릿키\n";
+                // 토큰 폐기
+            }else if(false){
+                html += "\t\t'appkey': 'AxserEsdcredca.....',  // 앱키\n";
+                html += "\t\t'secretkey': 'SEefdcwcforehDre2fdvc....',  // 시크릿키\n";
+                html += "\t\t'token': 'WQJCwyqInphKnR3bSRtB9NE1lv...',  // 토큰\n";
+                // 그외 기타
+            }else {
+                for(let i = 0; i < data.bodyData.length; ++ i){
+                    html +=  "\t\t'" + data.bodyData[i].itemId +"': '"+ data.bodyData[i].sampData + "', // " + data.bodyData[i].itemNm + " "+ (data.bodyData[i].itemDc ? data.bodyData[i].itemDc.replaceAll('<br/>', ' ') : '') +  "\n";
+                }
+            }
+            html += "\t};\n";
+            html += "\n";
+            if(false && true){
+                html += "\t// 3. API 실행\n";
+                html += "\tawait fn_au10001(MY_ACCESS_TOKEN, params);\n";
+                html += "\n";
+                html += "\t// next-key, cont-yn 값이 있을 경우\n";
+                html += "\t// await fn_au10001(MY_ACCESS_TOKEN, params, 'Y', 'nextkey..');\n";
+            }else{
+                html += "\t// 2. API 실행\n";
+                html += "\tawait fn_au10001(params);\n";
+            }
+            html += "})();\n";
+        }else{
+            // WEBSOCKET 일 경우
+            html += "// socket 정보 \n";
+            html += "// const SOCKET_URL = 'https://mockapi.kiwoom.com/oauth2/token'; // 모의투자\n";
+            if(true){
+                html += "const SOCKET_URL = 'https://api.kiwoom.com/oauth2/token'; // 실전 투자\n";
+            }else{
+                html += "const SOCKET_URL = 'https://apidev.kiwoom.com/oauth2/token'; // 실전 투자\n";
+            }
+            html += "const ACCESS_TOKEN = '사용자 AccessToken';\n";
+            html += "\n";
+            html += "class WebSocketClient {\n";
+            html += "\tconstructor(uri) {\n";
+            html += "\t\tthis.uri = uri;\n";
+            html += "\t\tthis.websocket = null;\n";
+            html += "\t\tthis.connected = false;\n";
+            html += "\t}\n";
+            html += "\n";
+            html += "\t// WebSocket 서버 연결\n";
+            html += "\tconnect() {\n";
+            html += "\t\treturn new Promise((resolve, reject) => {\n";
+            html += "\t\t\tthis.websocket = new WebSocket(this.uri);\n";
+            html += "\n";
+            html += "\t\t\t// 서버 연결이 열리면 호출되는 이벤트\n";
+            html += "\t\t\tthis.websocket.onopen = () => {\n";
+            html += "\t\t\t\tthis.connected = true;\n";
+            html += "\t\t\t\tconsole.log('서버와 연결되었습니다.');\n";
+            html += "\n";
+            html += "\t\t\t\t// 로그인 패킷\n";
+            html += "\t\t\t\tconst loginPacket = {\n";
+            html += "\t\t\t\t\ttrnm: 'LOGIN',\n";
+            html += "\t\t\t\t\ttoken: ACCESS_TOKEN\n";
+            html += "\t\t\t\t};\n";
+            html += "\n";
+            html += "\t\t\t\tconsole.log('실시간 시세 서버로 로그인 패킷을 전송합니다.');\n";
+            html += "\t\t\t\t// 웹소켓 연결 시 로그인 정보 전달\n";
+            html += "\t\t\t\tthis.sendMessage(loginPacket);\n";
+            html += "\t\t\t\tresolve();\n";
+            html += "\t\t\t};\n";
+            html += "\n";
+            html += "\t\t\t// 에러 발생 시 호출되는 이벤트\n";
+            html += "\t\t\tthis.websocket.onerror = (error) => {\n";
+            html += "\t\t\t\tconsole.error(`Connection error: ${error}`);\n";
+            html += "\t\t\t\treject(error);\n";
+            html += "\t\t\t};\n";
+            html += "\n";
+            html += "\t\t\t// 서버 연결이 닫혔을 때 호출되는 이벤트\n";
+            html += "\t\t\tthis.websocket.onclose = () => {\n";
+            html += "\t\t\t\tconsole.log('WebSocket 연결이 종료되었습니다.');\n";
+            html += "\t\t\t\tthis.connected = false;\n";
+            html += "\t\t\t};\n";
+            html += "\n";
+            html += "\t\t\t// 서버로부터 메시지를 수신할 때 호출되는 이벤트\n";
+            html += "\t\t\tthis.websocket.onmessage = (event) => {\n";
+            html += "\t\t\t\tconst response = JSON.parse(event.data);\n";
+            html += "\n";
+            html += "\t\t\t\t// 메시지 유형이 LOGIN일 경우 로그인 시도 결과 체크\n";
+            html += "\t\t\t\tif (response.trnm === 'LOGIN') {\n";
+            html += "\t\t\t\t\tif (response.return_code !== 0) {\n";
+            html += "\t\t\t\t\t\tconsole.error('로그인 실패:', response.return_msg);\n";
+            html += "\t\t\t\t\t\tthis.disconnect();\n";
+            html += "\t\t\t\t\t} else {\n";
+            html += "\t\t\t\t\t\tconsole.log('로그인 성공하였습니다.');\n";
+            if(false){
+                html += "\n";
+                html += "\t\t\t\t\t\tconsole.log('조건검색 목록조회 패킷을 전송합니다.');\n";
+                html += "\t\t\t\t\t\tthis.sendMessage({ trnm: 'CNSRLST' });\n";
+            }
+            html += "\t\t\t\t\t}\n";
+            html += "\t\t\t\t} \n";
+            html += "\t\t\t\t// 메시지 유형이 PING일 경우 수신값 그대로 송신{\n";
+            html += "\t\t\t\telse if (response.trnm === 'PING') {\n";
+            html += "\t\t\t\t\tthis.sendMessage(response);\n";
+            html += "\t\t\t\t}\n";
+            html += "\n";
+            html += "\t\t\t\tif (response.trnm !== 'PING') {\n";
+            html += "\t\t\t\t\tconsole.log('실시간 시세 서버 응답 수신:', response);\n";
+            html += "\t\t\t\t}\n";
+            html += "\t\t\t};\n";
+            html += "\t\t});\n";
+            html += "\t}\n";
+            html += "\n";
+            html += "\t// websocket 메시지 전송 \n";
+            html += "\tsendMessage(message) {\n";
+            html += "\t\tif (this.connected && this.websocket) {\n";
+            html += "\t\t\tthis.websocket.send(JSON.stringify(message));\n";
+            html += "\t\t\tconsole.log(`Message sent:`, message);\n";
+            html += "\t\t} else {\n";
+            html += "\t\t\tconsole.warn('WebSocket 연결이 없습니다.');\n";
+            html += "\t\t}\n";
+            html += "\t}\n";
+            html += "\n";
+            html += "\t// websocket 강제 종료\n";
+            html += "\tdisconnect() {\n";
+            html += "\t\tif (this.websocket) {\n";
+            html += "\t\t\tthis.websocket.close();\n";
+            html += "\t\t\tthis.connected = false;\n";
+            html += "\t\t\tconsole.log('Disconnected from WebSocket server');\n";
+            html += "\t\t}\n";
+            html += "\t}\n";
+            html += "}\n";
+            html += "\n";
+            html += "// 실시간 호출 함수\n";
+            html += "async function main() {\n";
+            html += "\tconst websocketClient = new WebSocketClient(SOCKET_URL);\n";
+            html += "\tawait websocketClient.connect();\n";
+            html += "\n";
+            html += "\tsetTimeout(() => {\n";
+            html += "\t\twebsocketClient.sendMessage({\n";
+
+            let listYn = false;
+            for(let i = 0; i < data.bodyData.length; ++ i){
+                if(data.bodyData[i].type == 'LIST'){
+                    listYn = true;
+            html +=  "\t\t\t'" + data.bodyData[i].itemId +"': [{ // " + data.bodyData[i].itemNm + "\n";
+                }else if(data.bodyData[i].itemId.indexOf('-') >= 0){
+            html +=  "\t\t\t\t'" + data.bodyData[i].itemId.replace('-','').trim() +"': ['"+ data.bodyData[i].sampData + "'], // " + data.bodyData[i].itemNm + "\n";
+                }else {
+            html +=  "\t\t\t'" + data.bodyData[i].itemId +"': '"+ data.bodyData[i].sampData + "', // " + data.bodyData[i].itemNm + "\n";
+                }
+            }
+            if(listYn){
+                html += "\t\t\t}]\n";
+            }
+
+            html += "\t\t});\n";
+            html += "\t}, 1000);\n";
+            html += "}\n";
+            html += "\n";
+            html += "// 메인 실행\n";
+            html += "main();\n";
+        }
+        return html;
+    }
+
+    function initCodeHighlight(){
+        // 소스 코드 영역 초기화
+        $('pre > code').each(function (){
+            const codeBlock = $(this);
+            delete codeBlock[0].dataset.highlighted;
+
+            // highlight 적용
+            hljs.highlightElement(codeBlock[0]);
+        });
+    }
+
+    // API 파라미터 조회
+    async function getExampleParameter(){
+        let result;
+        $.ajax({
+            type: "GET"
+            , async: false
+            , url: "https://openapi.kiwoom.com/guide/getExampleParameter"
+            , data: {apiId: 'au10001'}
+            , success: function (rst) {
+                if(rst.resp_code == '0'){
+                    result = rst.resp_data.in;
+                }
+            }
+            , error: function (err) {
+                console.log(err);
+            }
+        });
+        return result;
+    };
+
+    // 코드 복사용
+    function copyClibBoard(copyTarget) {
+
+        copyTargetCode = $(copyTarget).parent().next().find('.hljs');
+        let copyTargeContent = ``;
+        for(const copy of copyTargetCode) { 
+        	copyTargeContent += $(copy).text()+`
+`;
+        }
+        var inp = document.createElement("textarea");
+        inp.setAttribute("id", "copy");
+        document.body.appendChild(inp);
+        inp.value = copyTargeContent.trim();
+        inp.select();
+        document.execCommand('Copy');
+        document.body.removeChild(inp);
+
+        // 복사 완료 아이콘 변경
+        $(copyTarget).addClass('active');
+
+        // 2초 후 원복
+        setTimeout(() => {
+            $(copyTarget).removeClass('active');
+        }, 2000);
+    }
+</script>
+</section>
+
+        </section>
+    </div>
+</main>
+
+
+<script type="text/javascript">
+
+    let nowApiId = '';
+    let nowJobTpCode = '';
+    // 직전 조회된 키워드
+    let beforeKeyword = '';
+   
+
+    $(document).ready(function() {
+        document.title = 'API 가이드 | 키움 REST API';
+
+        $("#guideGrpNm").text();
+
+        // api autocomplete 셋팅
+        searchAutocompleteInit();
+    })
+
+    // api autocomplete 셋팅
+    function searchAutocompleteInit() {
+        
+        $("#searchApiName").autocomplete({
+            source:function(request,response) {
+                // array값 들어갈 장소 (조회 후에 update)
+            },
+            focus:function(event,ui) {
+                // 방향키 꺼짐 방지
+                return false;
+            },
+            select: function(event, ui) {
+                // 선택이벤트
+                
+                $(this).val(ui.item.name);
+                // 서치
+                apiGuideContents(ui.item.jobTpCode, $("#guideTpItem_"+ui.item.jobTpCode).children('a').text(), ui.item.id, ui.item.name);
+                
+                
+                return false;
+            },
+            open:function() {
+                // 자동완성 필터링
+                
+                const inputText = $("#searchApiName").val().toLowerCase();
+                
+                $(".ui-autocomplete li").each(function() {
+                    let suggestion = $(this).text();
+                    const apiNmIndex = suggestion.toLowerCase().lastIndexOf('>');;
+                    const textIndex = suggestion.toLowerCase().substr(apiNmIndex).indexOf(inputText);
+                    const index = apiNmIndex+textIndex;
+
+                    if(index != -1) {
+                        const highlightedPart = suggestion.substr(index, inputText.length);//+'</strong>'
+                        suggestion = suggestion.substring(0,index) + highlightedPart + suggestion.substring(index + inputText.length);
+                        $(this).html(suggestion);
+                    }
+                })
+            }
+        })
+    }
+    
+    // api메뉴 선택 event
+    function apiGuideSelect(jobTpCode,target,apiNm) {
+        if($(target).hasClass('guide-menu-a')) {
+            // 대메뉴 선택 이벤트
+            // downMenuList.open(jobTpCode, target);
+            $(target).closest('.guide-menu').hasClass('on')? $(target).closest('.guide-menu').removeClass('on') : $(target).closest('.guide-menu').addClass('on');
+
+        }else{
+            apiGuideContents(jobTpCode,apiNm,'','');
+        }
+    }
+
+    // API 검색 이벤트
+    function searchApiEvent() {
+        
+        // 입력된 키워드
+        const searchKeyword = $("#searchApiName").val();
+        const searchKeywordLength = searchKeyword.length;
+        if(window.event.keyCode==13){ // 엔터 입력시
+            // api리스트 검색
+            searchApi(searchKeyword);
+        } else if (searchKeywordLength > 1) { // 두번째 글자 입력했을 경우부터 조회 로직 태움
+            // 세번째 글자부터 그 이전 조회된 키워드와 비교하여 같으면 서버조회 안함 (동일 리스트에서 autocomplete으로 필터링만 해도 됨)
+            // 이전 검색한 키워드가 있을경우에도 비교 
+            if((searchKeywordLength > 2 || beforeKeyword.length == 2) && beforeKeyword!='' && beforeKeyword.substr(0,2) == searchKeyword.substr(0,2) ) {
+                return;
+            }
+            // 입력한 문자열 중에서 마지막 입력된 문자엶을 제외하고 api리스트 검색 (마지막 입력된 문자는 autocomplete으로 필터링 됨) 
+            searchApi(searchKeyword.substr(0,searchKeywordLength-1));
+        } else {
+        	$("#searchApiName").autocomplete('option','source', function(request,response) {});
+        	$(".ui-autocomplete").empty();
+        	beforeKeyword = '';
+        }
+    } 
+
+    // api리스트 검색
+    function searchApi(searchKeyword) {
+        if(searchKeyword == '') {
+            searchKeyword = $("#searchApiName").val();  
+        }
+        if(searchKeyword!='') {
+        	
+	        if(beforeKeyword != searchKeyword) {
+	            beforeKeyword = searchKeyword;
+	            $.ajax({
+	                type:'GET',
+	                dataType : "JSON",
+	                url : "/guide/apiGuideList",
+	                data : {searchApi : searchKeyword },
+	                success: function(data) {
+	                    let rpnsMap = data.rpnsMap;
+	                    
+	                    if(rpnsMap!=undefined && rpnsMap.length > 0) {
+	
+	                        rpnsMap.forEach(function(data,index) {
+	                            // 1뎁스에 해당하는 부분
+	                            const deps1 = $("#guideTpItem_"+data.jobTpCode).parent().prev().text();
+	                            // 2뎁스에 해당하는 부분
+	                            const deps2 = $("#guideTpItem_"+data.jobTpCode).children('a').text();
+	                            
+	                            // autocomplete 요소로 등록(value,label)
+	                            data.value = data.id;
+	                            data.label = deps1+' > '+deps2+' > '+data.name;
+	                            data.key   = data.jobTpCode;
+	                        })
+	                        
+	                        // 새로 조회해온 array결과 값으로 업데이트
+	                        $("#searchApiName").autocomplete('option','source', function(request,response) {
+	                            // 자동완성 데이터 입력              
+	                            const inputText = request.term.toLowerCase();
+	                            const filtereditItems = rpnsMap.filter(item => (item.name.toLowerCase()+item.id.toLowerCase()).includes(inputText));
+	                            response(filtereditItems);
+	                        });
+	                        
+	                        $("#searchApiName").autocomplete('search');
+	                        
+	                        // 버튼 클릭시 조회 후 드롭다운 표시
+	                        /* if(!$('.ui-autocomplete').is(':visible')) {
+	                            $('.ui-autocomplete').show();
+	                            $("#searchApiName").focus();
+	                        } */
+	                    }
+	                }
+	            })
+	        } else {
+	            $("#searchApiName").autocomplete('search');
+	        }
+        }
+    }
+    
+    // api정보상세 조회
+    function apiGuideContents(jobTpCode, jobNm, apiId, apiNm) {
+        
+        this.nowJobTpCode = jobTpCode;
+        $.ajax({
+            type:'GET',
+            dataType : "html",
+            url : "/guide/apiGuideContents",
+            data : {jobTpCode : jobTpCode 
+                   ,apiId    : apiId},
+            success: function(data) {
+                $("#apiGuideContent").empty();
+                $("#apiGuideContent").append(data);
+
+                // apiId값이 있을경우
+                if (apiId !='') {
+                    this.nowApiId = apiId;
+                    // 우측 컨텐츠영역 타이틀
+                    $("#selectTr").empty();
+                    $("#selectTr").html('<h3>'+apiNm+'</h3>'+apiId);
+                }
+            }
+        })
+    }
+
+    // api정보 Tr선택  I/O조회
+    function apiGuideTrIo(apiId, apiNm,jobTpCode) {
+        if( apiId != this.nowApiId) {
+            this.nowApiId = apiId; 
+            
+            apiGuideContents(jobTpCode, $("#guideTpItem_"+jobTpCode).children('a').text(), apiId, apiNm);
+
+        }
+    }
+</script>
+
+<!-- Excel 생성  -->
+<script type="text/javascript">
+    // 엑셀 다운로딩중 체크
+    let excelDownloading = false;
+
+    // 엑셀 다운로드 버튼 클릭시
+    $('#btnDownloadExcel').on('click', async () => {
+        // 엑셀 다운로드 중복 클릭 방지
+        if(excelDownloading) {
+            $.alert('EXCEL 문서 다운로드 중입니다.');
+            return;
+        }
+
+        // 엑셀 다운로드 중
+        excelDownloading = true;
+
+        // API 정보 조회
+        let apiInfoList = await getApiInfoListAjax();
+        let errorCodeList = await getErrorCodeListAjax();
+
+        // 데이터를 조회 못했을 경우
+        if(!apiInfoList) return
+
+        try {
+            // Excel 생성
+            await makeExcelFile(apiInfoList, errorCodeList);
+        } catch(e){
+            $.alert("EXCEL 생성 과정에 오류가 발생했습니다.");
+        } finally {
+            // flag 초기화
+            excelDownloading = false;
+        }
+    });
+
+    // API 정보 조회 apiId 유무에 따라 전체, 선택 조회
+    function getApiInfoListAjax(apiId=''){
+        let result;
+        $.xajax({
+            type: "POST"
+            , async: false
+            , url: "/guide/getApiInfoListAjax"
+            , data: {
+                apiId: apiId,
+            }, success: function (res) {
+                if(res.resp_code === '0'){
+                    result = res.resp_data;
+                }
+            }, error: function (xhr, status, error) {
+                $.alert("API 문서 제공 과정에 에러가 발생했습니다.");
+            }
+        });
+        return result;
+    }
+
+    // 에러 코드 리스트 조회
+    function getErrorCodeListAjax(){
+        let result;
+        $.xajax({
+            type: "POST"
+            , async: false
+            , url: "/errorcode/getErrorCodeListAjax"
+            , data: {}, success: function (res) {
+                if(res.resp_code === '0'){
+                    result = res.resp_data;
+                }
+            }, error: function (xhr, status, error) {
+                $.alert("API 문서 제공 과정에 에러가 발생했습니다.");
+            }
+        });
+        return result;
+    }
+
+    // Excel 생성
+    async function makeExcelFile(jsonData, errorCodeList) {
+
+        // 데이터 조회가 안됐을 경우
+        if(!jsonData || jsonData.length == 0) {
+            $.alert('API 문서 제공 과정에 에러가 발생했습니다.');
+            return;
+        }
+        // 1. worobook 생성
+        const wb = new ExcelJS.Workbook();
+
+        // 2. 목차 시트 생성
+        const firstSheetName = 'API 리스트';
+
+        // 목차 생성
+        const ws = wb.addWorksheet(firstSheetName);
+
+        // 컬럼 너비
+        [10, 15, 30, 20, 20, 25, 10].forEach((w, i) => ws.getColumn(i + 1).width = w);
+
+        // 첫 행 설정
+        let r = 1;
+
+        // 타이틀
+        ws.mergeCells(r,1, r,7);
+        Object.assign(ws.getCell(r,1), {
+            value: '키움 REST API',
+            font: {bold: true, size: 12, color: {argb: 'FFFFFFFF'}},
+            fill: {type: 'pattern', pattern: 'solid', fgColor: {argb: 'FF002060'}},
+            alignment: {horizontal: 'center', vertical: 'middle'}
+        });
+        ws.getRow(r).height = 28;
+        r++;
+
+        // API 리스트 표 header
+        ['No.','API ID','API 명','대분류','중분류','URL','바로가기'].forEach((v,i)=>{
+            const c = ws.getCell(r, i+1);
+            c.value = v;
+            c.fill = { type:'pattern',pattern:'solid',fgColor:{argb:'FFD9D9D9'} };
+            c.font = { bold:true };
+            c.alignment = { horizontal:'center', vertical:'middle' };
+        });
+        ws.getRow(r).height = 20;
+        r++;
+
+        // API 리스트 표 body
+        let no = 1;
+        let apiListBody = [];
+        for(let json of jsonData){
+            apiListBody.push([
+                no,
+                json.apiInfo.apiId,
+                json.apiInfo.apiNm,
+                json.apiInfo.grpCodeNm,
+                json.apiInfo.jobTpNm,
+                json.apiInfo.svcUri,
+                (json.apiInfo.apiNm + '(' + json.apiInfo.apiId + ')').replaceAll('/','|')
+            ]);
+            no++;
+        }
+
+        // 오류 코드 리스트 목차 추가
+        if(errorCodeList && errorCodeList.length > 0){
+            apiListBody.push([
+                no,
+                '공통',
+                '오류코드',
+                '',
+                '',
+                '',
+                '오류코드'
+            ]);
+            no++;
+        }
+
+        apiListBody.forEach((row, i)=>{
+            let cell1 = ws.getCell(r+i, 1);
+            cell1.value = Number(row[0]).toLocaleString();
+            cell1.alignment = {horizontal: 'center', vertical:'middle', wrapText:true};
+            cell1.font = {size: 10};
+            let cell2 = ws.getCell(r+i, 2);
+            cell2.value = row[1];
+            cell2.alignment = {horizontal: 'center',vertical:'middle', wrapText:true};
+            cell2.font = {size: 10};
+            let cell3 = ws.getCell(r+i, 3);
+            cell3.value = row[2];
+            cell3.alignment = {vertical:'middle', wrapText:true};
+            cell3.font = {size: 10};
+            let cell4 = ws.getCell(r+i, 4);
+            cell4.value = row[3];
+            cell4.alignment = {horizontal: 'center',vertical:'middle', wrapText:true};
+            cell4.font = {size: 10};
+            let cell5 = ws.getCell(r+i, 5);
+            cell5.value = row[4];
+            cell5.alignment = {horizontal: 'center',vertical:'middle', wrapText:true};
+            cell5.font = {size: 10};
+            let cell6 = ws.getCell(r+i, 6);
+            cell6.value = row[5];
+            cell6.alignment = {vertical:'middle', wrapText:true};
+            cell6.font = {size: 10};
+            let cell7 = ws.getCell(r+i, 7);
+            cell7.value = {
+                text: '이동',
+                hyperlink: '#\'' + row[6] + '\'!A2'
+            };
+            cell7.font = {size: 10, color: {argb: 'FF0000FF'}};
+            cell7.alignment = {horizontal: 'center',vertical:'middle', wrapText:true};
+
+            ws.getRow(r+i).height = 20;
+        });
+
+        // 3. API 시트 생성
+        for(let json of jsonData){
+            // sheet 이름 설정, 여기서 * ? : \ / [ ] 문자는 들어가면 안되지만 현재 API에서는 / 밖에 없음
+            let sheetName = (json.apiInfo.apiNm + '(' + json.apiInfo.apiId + ')').replaceAll('/','|');
+
+            // 시트 생성
+            const ws = wb.addWorksheet(sheetName);
+
+            // 컬럼 너비
+            [13, 18, 23, 10, 10, 10, 85].forEach((w, i) => ws.getColumn(i + 1).width = w);
+
+            // 첫 행 설정
+            let r = 1;
+
+            // 목차 바로가기
+            ws.mergeCells(r,1, r,2);
+            ws.getCell('A1').value = {
+                text: '◀ ' + firstSheetName + ' 이동',
+                hyperlink: '#\'' + firstSheetName + '\'!A1'
+            };
+            Object.assign(ws.getCell(1,1), {
+                font: {bold: true, size: 10, color: {argb: 'FF0000FF'}},
+                alignment: {horizontal: 'left', vertical: 'middle'},
+            });
+            ws.getRow(1).height = 20;
+            r++;
+
+            // 타이틀
+            ws.mergeCells(r,1, r,7);
+            Object.assign(ws.getCell(r,1), {
+                value: '키움 REST API',
+                font: {bold: true, size: 12, color: {argb: 'FFFFFFFF'}},
+                fill: {type: 'pattern', pattern: 'solid', fgColor: {argb: 'FF002060'}},
+                alignment: {horizontal: 'center', vertical: 'middle'}
+            });
+            ws.getRow(r).height = 28;
+            r++;
+
+            // API 정보 header
+            ws.mergeCells(r,1, r,7);
+            Object.assign(ws.getCell(r,1), {
+                value: 'API 정보',
+                fill: { type:'pattern', pattern:'solid', fgColor:{argb:'FFD9D9D9'} },
+                font: { bold:true, size: 10},
+                alignment:{ horizontal:'center', vertical:'middle' }
+            });
+            ws.getRow(r).height = 18;
+            r++;
+
+            // API 정보 Body
+            [
+                ['메뉴 위치', json.apiInfo.grpCodeNm + ' > ' + json.apiInfo.jobTpNm + ' > ' + json.apiInfo.apiNm + '('+ json.apiInfo.apiId +')'],
+                ['API 명', json.apiInfo.apiNm],
+                ['API ID', json.apiInfo.apiId],
+            ].forEach(([label, value])=>{
+                // A-B 병합
+                ws.mergeCells(r,1,r,2);
+
+                // 좌측 API 정보 KEY 타이틀
+                const keyCell = ws.getCell(r,1);
+                keyCell.value = label;
+                keyCell.font = {bold:true, size:10};
+                keyCell.alignment = {horizontal:'center', vertical:'middle'};
+
+                // C-G 병합
+                ws.mergeCells(r,3,r,7);
+
+                // 우측 동적 value 설정
+                const valueCell = ws.getCell(r,3);
+                valueCell.value = value;
+                valueCell.font = {size: 10};
+                valueCell.alignment = {horizontal:'left', vertical:'middle'};
+
+                // 행 높이 설정
+                ws.getRow(r).height = 18;
+                r++;
+            });
+
+            // 기본정보 header
+            ws.mergeCells(r,1, r,7);
+            Object.assign(ws.getCell(r,1), {
+                value:'기본정보',
+                fill:{type:'pattern',pattern:'solid',fgColor:{argb:'FFD9D9D9'}},
+                font:{bold:true, size:10},
+                alignment:{horizontal:'center', vertical:'middle'}
+            });
+            ws.getRow(r).height = 18;
+            r++;
+
+            // 기본정보 body
+            [
+                ['Method', json.apiInfo.jobMethod],
+                ['운영 도메인',json.apiInfo.jobRealDomain],
+                ['모의투자 도메인',json.apiInfo.jobSimulateDomain + '(KRX만 지원가능)'],
+                ['URL',json.apiInfo.svcUri],
+                ['Format',json.apiInfo.jobFormat],
+                ['Content-Type',json.apiInfo.jobContentType]
+            ].forEach(([label,value])=>{
+                // A-B 병합
+                ws.mergeCells(r,1,r,2);
+
+                // 좌측 API 정보 KEY 타이틀
+                const keyCell = ws.getCell(r,1);
+                keyCell.value = label;
+                keyCell.font = {bold:true, size:10};
+                keyCell.alignment = {horizontal:'center', vertical:'middle'};
+
+                // C-G 병합
+                ws.mergeCells(r,3,r,7);
+
+                // 우측 동적 value 설정
+                const valueCell = ws.getCell(r,3);
+                valueCell.value = value;
+                valueCell.font = {size: 10};
+                valueCell.alignment = {horizontal:'left', vertical:'middle'};
+
+                // 행 높이 설정
+                ws.getRow(r).height = 18;
+                r++;
+            });
+
+            // 개요 헤더
+            ws.mergeCells(r,1, r,7);
+            Object.assign(ws.getCell(r,1), {
+                value:'개요',
+                fill:{type:'pattern',pattern:'solid',fgColor:{argb:'FFD9D9D9'}},
+                font:{bold:true, size:10},
+                alignment:{horizontal:'center', vertical:'middle'}
+            });
+            ws.getRow(r).height = 18;
+            r++;
+
+            // 개요 설명
+            ws.mergeCells(r,1, r,7);
+            Object.assign(ws.getCell(r,1), {
+                value: json.apiInfo.apiDc? json.apiInfo.apiDc.replace(/<br\s*\/?>|<\/br>/gi, '\n').replaceAll('&lt;br&gt;', '\n') : json.apiInfo.apiDc || '',
+                font:{size:10},
+                alignment:{wrapText:true, vertical:'middle'}
+            });
+            ws.getRow(r).height = 40;
+            r++;
+
+            // 요청 정보
+            ws.mergeCells(r,1, r,7);
+            Object.assign(ws.getCell(r,1), {
+                value:'Request',
+                fill:{type:'pattern',pattern:'solid',fgColor:{argb:'FFD9D9D9'}},
+                font:{bold:true, size:10},
+                alignment:{ horizontal:'center', vertical:'middle' }
+            });
+            ws.getRow(r).height = 18;
+            r++;
+
+            // 요청 헤더 표
+            ['구분','Element','한글명','Type','Required','Length','Description'].forEach((v,i)=>{
+                const c = ws.getCell(r, i+1);
+                c.value = v;
+                c.fill = {type:'pattern',pattern:'solid',fgColor:{argb:'FFD9D9D9'}};
+                c.font = {bold:true, size:10};
+                c.alignment = {horizontal:'center', vertical:'middle'};
+            });
+            ws.getRow(r).height = 18;
+            r++;
+
+            // Request Header
+            const requestHeader = [];	// 공통 헤더 추출
+            let jsonCommonHeader = json.commonHeader.filter(item => item.inptOutputTp == 'I');
+            for(let commHeader of jsonCommonHeader) {
+                requestHeader.push([
+                    commHeader.itemId,
+                    commHeader.itemNm,
+                    commHeader.type,
+                    commHeader.esntYn,
+                    commHeader.lngt,
+                    commHeader.itemDc
+                ]);
+            }
+
+            if(requestHeader.length !== 0){
+                ws.mergeCells(r,1, r+requestHeader.length-1,1);
+                Object.assign(ws.getCell(r,1), {
+                    value:'Header',
+                    font: {bold:true, size: 10},
+                    alignment:{ horizontal:'center', vertical:'middle' }
+                });
+
+                requestHeader.forEach((row,i)=>{
+                    // 1열이 병합셀이라 인덱스 다름
+                    let cell1 = ws.getCell(r, 2);
+                    cell1.value = row[0];
+                    cell1.font = {size: 10};
+                    cell1.alignment = {horizontal: 'left', vertical:'middle', wrapText:true};
+                    let cell2 = ws.getCell(r, 3);
+                    cell2.value = row[1];
+                    cell2.font = {size: 10};
+                    cell2.alignment = {horizontal: 'left',vertical:'middle', wrapText:true};
+                    let cell3 = ws.getCell(r, 4);
+                    cell3.value = row[2];
+                    cell3.font = {size: 10};
+                    cell3.alignment = {horizontal: 'center',vertical:'middle', wrapText:true};
+                    let cell4 = ws.getCell(r, 5);
+                    cell4.value = row[3];
+                    cell4.font = {size: 10};
+                    cell4.alignment = {horizontal: 'center',vertical:'middle', wrapText:true};
+                    let cell5 = ws.getCell(r, 6);
+                    cell5.value = row[4];
+                    cell5.font = {size: 10};
+                    cell5.alignment = {horizontal: 'center',vertical:'middle', wrapText:true};
+                    let cell6 = ws.getCell(r, 7);
+                    cell6.value = row[5]? row[5].replace(/<br\s*\/?>|<\/br>/gi, '\n') : row[5];
+                    cell6.font = {size: 10};
+                    cell6.alignment = {vertical:'middle', wrapText:true};
+
+                    ws.getRow(r).height = 18;
+                    r++;
+                });
+            }
+
+            // Request Body
+            const requestBody = [];	// 공통 헤더 추출
+            let requestIoBody = json.apiTrIo.filter(item => item.inptOutputTp == 'I');
+            for(let ioBody of requestIoBody) {
+                requestBody.push([
+                    ioBody.itemId,
+                    ioBody.itemNm,
+                    ioBody.type,
+                    ioBody.esntYn,
+                    ioBody.lngt,
+                    ioBody.itemDc
+                ]);
+            }
+
+            if(requestBody.length !== 0){
+                ws.mergeCells(r,1, r+requestBody.length-1,1);
+                Object.assign(ws.getCell(r,1), {
+                    value:'Body',
+                    font:{bold:true, size: 10},
+                    alignment:{ horizontal:'center', vertical:'middle' }
+                });
+
+                requestBody.forEach((row,i)=>{
+                    // 1열이 병합셀이라 인덱스 다름
+                    let cell1 = ws.getCell(r, 2);
+                    cell1.value = row[0];
+                    cell1.font = {size: 10};
+                    cell1.alignment = {horizontal: 'left', vertical:'middle', wrapText:true};
+                    let cell2 = ws.getCell(r, 3);
+                    cell2.value = row[1];
+                    cell2.font = {size: 10};
+                    cell2.alignment = {horizontal: 'left',vertical:'middle', wrapText:true};
+                    let cell3 = ws.getCell(r, 4);
+                    cell3.value = row[2];
+                    cell3.font = {size: 10};
+                    cell3.alignment = {horizontal: 'center',vertical:'middle', wrapText:true};
+                    let cell4 = ws.getCell(r, 5);
+                    cell4.value = row[3];
+                    cell4.font = {size: 10};
+                    cell4.alignment = {horizontal: 'center',vertical:'middle', wrapText:true};
+                    let cell5 = ws.getCell(r, 6);
+                    cell5.value = row[4];
+                    cell5.font = {size: 10};
+                    cell5.alignment = {horizontal: 'center',vertical:'middle', wrapText:true};
+                    let cell6 = ws.getCell(r, 7);
+                    cell6.value = row[5]? row[5].replace(/<br\s*\/?>|<\/br>/gi, '\n') : row[5];
+                    cell6.font = {size: 10};
+                    cell6.alignment = {vertical:'middle', wrapText:true};
+
+                    ws.getRow(r).height = 18;
+                    r++;
+                });
+            }
+
+            // 응답 정보
+            ws.mergeCells(r,1, r,7);
+            Object.assign(ws.getCell(r,1), {
+                value:'Response',
+                fill:{type:'pattern',pattern:'solid',fgColor:{argb:'FFD9D9D9'}},
+                font:{bold:true, size:10},
+                alignment:{horizontal:'center', vertical:'middle'}
+            });
+            ws.getRow(r).height = 18;
+            r++;
+
+            // 요청 헤더 표
+            ['구분','Element','한글명','Type','Required','Length','Description'].forEach((v,i)=>{
+                const c = ws.getCell(r, i+1);
+                c.value = v;
+                c.fill = {type:'pattern',pattern:'solid',fgColor:{argb:'FFD9D9D9'}};
+                c.font = {bold:true, size:10};
+                c.alignment = {horizontal:'center', vertical:'middle'};
+            });
+            ws.getRow(r).height = 18;
+            r++;
+
+            // Response Header
+            const responseHeader = [];	// 공통 헤더 추출
+            jsonCommonHeader = json.commonHeader.filter(item => item.inptOutputTp == 'O');
+            for(let commHeader of jsonCommonHeader) {
+                responseHeader.push([
+                    commHeader.itemId,
+                    commHeader.itemNm,
+                    commHeader.type,
+                    commHeader.esntYn,
+                    commHeader.lngt,
+                    commHeader.itemDc
+                ]);
+            }
+
+            if(responseHeader.length !== 0){
+                ws.mergeCells(r,1, r + responseHeader.length - 1, 1);
+                Object.assign(ws.getCell(r,1), {
+                    value:'Header',
+                    font: {bold:true, size:10},
+                    alignment:{ horizontal:'center', vertical:'middle' }
+                });
+
+                responseHeader.forEach((row,i)=>{
+                    // 1열이 병합셀이라 인덱스 다름
+                    let cell1 = ws.getCell(r, 2);
+                    cell1.value = row[0];
+                    cell1.font = {size:10};
+                    cell1.alignment = {horizontal: 'left', vertical:'middle', wrapText:true};
+                    let cell2 = ws.getCell(r, 3);
+                    cell2.value = row[1];
+                    cell2.font = {size:10};
+                    cell2.alignment = {horizontal: 'left',vertical:'middle', wrapText:true};
+                    let cell3 = ws.getCell(r, 4);
+                    cell3.value = row[2];
+                    cell3.font = {size:10};
+                    cell3.alignment = {horizontal: 'center',vertical:'middle', wrapText:true};
+                    let cell4 = ws.getCell(r, 5);
+                    cell4.value = row[3];
+                    cell4.font = {size:10};
+                    cell4.alignment = {horizontal: 'center',vertical:'middle', wrapText:true};
+                    let cell5 = ws.getCell(r, 6);
+                    cell5.value = row[4];
+                    cell5.font = {size:10};
+                    cell5.alignment = {horizontal: 'center',vertical:'middle', wrapText:true};
+                    let cell6 = ws.getCell(r, 7);
+                    cell6.value = row[5]? row[5].replace(/<br\s*\/?>|<\/br>/gi, '\n') : row[5];
+                    cell6.font = {size:10};
+                    cell6.alignment = {vertical:'middle', wrapText:true};
+
+                    ws.getRow(r).height = 18;
+                    r++;
+                });
+            }
+
+            // Request Body
+            const responseBody = [];	// 공통 헤더 추출
+            let responseIoBody = json.apiTrIo.filter(item => item.inptOutputTp == 'O');
+            for(let ioBody of responseIoBody) {
+                responseBody.push([
+                    ioBody.itemId,
+                    ioBody.itemNm,
+                    ioBody.type,
+                    ioBody.esntYn,
+                    ioBody.lngt,
+                    ioBody.itemDc
+                ]);
+            }
+
+            if(responseBody.length !== 0){
+                // 조건 검색일 경우 응답 body가 2개
+                if(json.apiInfo.apiId == 'ka10173'){
+                    ws.mergeCells(r,1, r+responseBody.length,1);
+                    Object.assign(ws.getCell(r,1), {
+                        value:'Body',
+                        font:{bold:true, size:10},
+                        alignment:{horizontal:'center', vertical:'middle'}
+                    });
+
+                    ws.mergeCells(r,2, r,7);
+                    Object.assign(ws.getCell(r,2), {
+                        value:'조회 데이터',
+                        font:{bold:true, size:10},
+                        alignment:{horizontal:'center', vertical:'middle'},
+                        fill:{type:'pattern',pattern:'solid',fgColor:{argb:'FFD9D9D9'}}
+                    });
+                    r++;
+                }else{
+                    ws.mergeCells(r,1, r+responseBody.length-1,1);
+                    Object.assign(ws.getCell(r,1), {
+                        value:'Body',
+                        font:{bold:true, size:10},
+                        alignment:{horizontal:'center', vertical:'middle'}
+                    });
+                }
+
+                responseBody.forEach((row,i)=>{
+                    // 1열이 병합셀이라 인덱스 다름
+                    let cell1 = ws.getCell(r, 2);
+                    cell1.value = row[0];
+                    cell1.font = {size:10};
+                    cell1.alignment = {horizontal: 'left', vertical:'middle', wrapText:true};
+                    let cell2 = ws.getCell(r, 3);
+                    cell2.value = row[1];
+                    cell2.font = {size:10};
+                    cell2.alignment = {horizontal: 'left',vertical:'middle', wrapText:true};
+                    let cell3 = ws.getCell(r, 4);
+                    cell3.value = row[2];
+                    cell3.font = {size:10};
+                    cell3.alignment = {horizontal: 'center',vertical:'middle', wrapText:true};
+                    let cell4 = ws.getCell(r, 5);
+                    cell4.value = row[3];
+                    cell4.font = {size:10};
+                    cell4.alignment = {horizontal: 'center',vertical:'middle', wrapText:true};
+                    let cell5 = ws.getCell(r, 6);
+                    cell5.value = row[4];
+                    cell5.font = {size:10};
+                    cell5.alignment = {horizontal: 'center',vertical:'middle', wrapText:true};
+                    let cell6 = ws.getCell(r, 7);
+                    cell6.value = row[5]? row[5].replace(/<br\s*\/?>|<\/br>/gi, '\n') : row[5];
+                    cell6.font = {size:10};
+                    cell6.alignment = {vertical:'middle', wrapText:true};
+
+                    ws.getRow(r).height = 18;
+                    r++;
+                });
+
+                // 조건 검색일 경우 응답 body가 2개
+                if(json.apiInfo.apiId == 'ka10173'){
+                    let ka10173Output =   [
+                        ['data', '검색결과데이터', 'LIST', 'Y', '', ''],
+                        ['trnm', '서비스명', 'String', 'Y', '', 'REAL'],
+                        ['- type', '실시간 항목', 'String', 'Y', '2', 'TR 명(0A,0B....)'],
+                        ['- name', '실시간 항목명', 'String', 'Y', '', '종목코드'],
+                        ['- values', '실시간 수신 값', 'Object', 'Y', '', ''],
+                        ['- - 841', '일련번호', 'String', 'Y', '', ''],
+                        ['- - 9001', '종목코드', 'String', 'Y', '', ''],
+                        ['- - 843', '삽입삭제 구분', 'String', 'Y', '', 'I: 삽입, D: 삭제'],
+                        ['- - 20', '체결시간', 'String', 'Y', '', ''],
+                        ['- - 907', '매도/수 구분', 'String', 'Y', '', ''],
+                    ];
+
+                    ws.mergeCells(r,1, r+ka10173Output.length,1);
+                    Object.assign(ws.getCell(r,1), {
+                        value:'Body',
+                        font:{bold:true, size:10},
+                        alignment:{horizontal:'center', vertical:'middle'}
+                    });
+
+                    ws.mergeCells(r,2, r, 7);
+                    Object.assign(ws.getCell(r,2), {
+                        value:'실시간 데이터',
+                        font:{bold:true, size:10},
+                        alignment:{horizontal:'center', vertical:'middle'},
+                        fill:{type:'pattern',pattern:'solid',fgColor:{argb:'FFD9D9D9'}}
+                    });
+                    r++;
+
+                    ka10173Output.forEach((row,i)=>{
+                        // 1열이 병합셀이라 인덱스 다름
+                        let cell1 = ws.getCell(r, 2);
+                        cell1.value = row[0];
+                        cell1.font = {size:10};
+                        cell1.alignment = {horizontal: 'left', vertical:'middle', wrapText:true};
+                        let cell2 = ws.getCell(r, 3);
+                        cell2.value = row[1];
+                        cell2.font = {size:10};
+                        cell2.alignment = {horizontal: 'left',vertical:'middle', wrapText:true};
+                        let cell3 = ws.getCell(r, 4);
+                        cell3.value = row[2];
+                        cell3.font = {size:10};
+                        cell3.alignment = {horizontal: 'center',vertical:'middle', wrapText:true};
+                        let cell4 = ws.getCell(r, 5);
+                        cell4.value = row[3];
+                        cell4.font = {size:10};
+                        cell4.alignment = {horizontal: 'center',vertical:'middle', wrapText:true};
+                        let cell5 = ws.getCell(r, 6);
+                        cell5.value = row[4];
+                        cell5.font = {size:10};
+                        cell5.alignment = {horizontal: 'center',vertical:'middle', wrapText:true};
+                        let cell6 = ws.getCell(r, 7);
+                        cell6.value = row[5]? row[5].replace(/<br\s*\/?>|<\/br>/gi, '\n') : row[5];
+                        cell6.font = {size:10};
+                        cell6.alignment = {vertical:'middle', wrapText:true};
+
+                        ws.getRow(r).height = 18;
+                        r++;
+                    });
+                }
+            }
+
+            // Request 예제 header
+            ws.mergeCells(r,1, r,7);
+            Object.assign(ws.getCell(r,1), {
+                value:'Request Example',
+                fill:{type:'pattern',pattern:'solid',fgColor:{argb:'FFD9D9D9'}},
+                font:{bold:true, size:10},
+                alignment:{horizontal:'center', vertical:'middle'}
+            });
+            ws.getRow(r).height = 18;
+            r++;
+
+            // Request 예제 생성 -> json.apiTrIo에서 추출한 input 속성들의 array에서 예제를 만듬
+            let requestExample = {};
+            let listYn = false;
+            let listTarget = null;
+
+            // 실시간일 경우 request 형식 가공
+            for(let item of requestIoBody){
+                if(item.type == 'LIST'){
+                    listYn = true;
+                    requestExample[item.itemId] = [{}];
+                    listTarget = requestExample[item.itemId];
+                }else if(listYn && item.itemId.indexOf('-') >= 0){
+                    listTarget[0][item.itemId.replaceAll('- ', '')] = [item.sampData];
+                }else {
+                    requestExample[item.itemId] = item.sampData;
+                }
+            }
+
+            // Request 예제 body
+            ws.mergeCells(r,1, r,7);
+            Object.assign(ws.getCell(r,1), {
+                value: JSON.stringify(requestExample, null, 4),
+                font: {size:10},
+                alignment:{ wrapText:true, vertical:'middle' }
+            });
+            ws.getRow(r).height = 100;
+            r++;
+
+            // Response 예제 header
+            ws.mergeCells(r,1, r,7);
+            Object.assign(ws.getCell(r,1), {
+                value:'Response Example',
+                fill:{ type:'pattern',pattern:'solid',fgColor:{argb:'FFD9D9D9'} },
+                font:{ bold:true, size:10},
+                alignment:{ horizontal:'center', vertical:'middle' }
+            });
+            ws.getRow(r).height = 18;
+            r++;
+
+            // Response 예제 body
+            let rsltData;
+            try {
+                rsltData = JSON.stringify(JSON.parse(json.apiInfo.rsltData), null, 4);
+            } catch (err) {
+                rsltData = json.apiInfo.rsltData.replaceAll('\t', '    ');
+            }
+
+            ws.mergeCells(r,1, r,7);
+            Object.assign(ws.getCell(r,1), {
+                value: rsltData,
+                font: {size:10},
+                alignment:{ wrapText:true, vertical:'middle' }
+            });
+            ws.getRow(r).height = 100;
+            r++;
+        }
+
+        // 오류 코드 리스트 목차 추가
+        if(errorCodeList && errorCodeList.length > 0){
+            // sheet 이름 설정
+            let sheetName = '오류코드';
+
+            // 시트 생성
+            const ws = wb.addWorksheet(sheetName);
+
+            // 컬럼 너비
+            [10, 20, 120].forEach((w, i) => ws.getColumn(i + 1).width = w);
+
+            // 첫 행 설정
+            let r = 1;
+
+            // 목차 바로가기
+            ws.mergeCells(r,1, r,2);
+            ws.getCell('A1').value = {
+                text: '◀ ' + firstSheetName + ' 이동',
+                hyperlink: '#\'' + firstSheetName + '\'!A1'
+            };
+            Object.assign(ws.getCell(1,1), {
+                font: {bold: true, size: 10, color: {argb: 'FF0000FF'}},
+                alignment: {horizontal: 'left', vertical: 'middle'},
+            });
+            ws.getRow(1).height = 20;
+            r++;
+
+            // 타이틀
+            ws.mergeCells(r,1, r,3);
+            Object.assign(ws.getCell(r,1), {
+                value: '키움 REST API',
+                font: {bold: true, size: 12, color: {argb: 'FFFFFFFF'}},
+                fill: {type: 'pattern', pattern: 'solid', fgColor: {argb: 'FF002060'}},
+                alignment: {horizontal: 'center', vertical: 'middle'}
+            });
+            ws.getRow(r).height = 28;
+            r++;
+
+            // 오류코드 리스트 표 header
+            ['No.','오류코드','오류메시지'].forEach((v,i)=>{
+                const c = ws.getCell(r, i+1);
+                c.value = v;
+                c.fill = { type:'pattern',pattern:'solid',fgColor:{argb:'FFD9D9D9'} };
+                c.font = { bold:true };
+                c.alignment = { horizontal:'center', vertical:'middle' };
+            });
+            ws.getRow(r).height = 20;
+            r++;
+
+            // 오류코드 배열 데이터 생성
+            let no = 1;
+            let errorCodeListBody = [];
+            for(let data of errorCodeList){
+                errorCodeListBody.push([
+                    no,
+                    data.errorCode,
+                    data.errorMsg
+                ]);
+                no++;
+            }
+            // 오류코드 데이터 삽입
+            errorCodeListBody.forEach((row, i)=>{
+                let cell1 = ws.getCell(r+i, 1);
+                cell1.value = Number(row[0]).toLocaleString();
+                cell1.alignment = {horizontal: 'center', vertical:'middle', wrapText:true};
+                cell1.font = {size: 10};
+                let cell2 = ws.getCell(r+i, 2);
+                cell2.value = row[1];
+                cell2.alignment = {horizontal: 'center',vertical:'middle', wrapText:true};
+                cell2.font = {size: 10};
+                let cell3 = ws.getCell(r+i, 3);
+                cell3.value = row[2];
+                cell3.alignment = {vertical:'left', wrapText:true};
+                cell3.font = {size: 10};
+
+                ws.getRow(r+i).height = 20;
+            });
+        }
+
+        // 3) 다운로드 (네이티브)
+        const buf = await wb.xlsx.writeBuffer();
+        const blob = new Blob([buf], { type: 'application/octet-stream' });
+        const url  = URL.createObjectURL(blob);
+        const a    = document.createElement('a');
+        a.href     = url;
+        a.download = '키움 REST API 문서.xlsx';
+        document.body.appendChild(a);
+        a.click();
+        URL.revokeObjectURL(url);
+        a.remove();
+    }
+</script>
+
+<!-- PDF 생성  -->
+<script type="text/javascript">
+    // PDF 다운로딩중 체크
+    let pdfDownloading = false;
+
+    // PDF 다운로드 버튼 클릭시
+    $('#btnDownloadBtnPdf').on('click', async () => {
+        // 엑셀 다운로드 중복 클릭 방지
+        if(pdfDownloading) {
+            $.alert('PDF 문서 다운로드 중입니다.');
+            return;
+        }
+
+        // PDF 다운로딩중 체크
+        pdfDownloading = true;
+
+        // API 정보 조회
+        let apiInfoList = await getApiInfoListAjax();
+        let errorCodeList = await getErrorCodeListAjax();
+
+        // 데이터를 조회 못했을 경우
+        if(!apiInfoList) return
+
+        try {
+            // PDF 다운로드
+            await generatePDF(apiInfoList, errorCodeList);
+        } catch(e){
+            $.alert("PDF 생성 과정에 오류가 발생했습니다.");
+        } finally {
+            // PDF 다운로딩중 체크
+            pdfDownloading = false;
+        }
+    });
+
+    async function generatePDF(jsonList, errorCodeList){
+        // 데이터 조회가 안됐을 경우
+        if(!jsonList || jsonList.length == 0) {
+            $.alert('API 문서 제공 과정에 에러가 발생했습니다.');
+            return;
+        }
+
+        const {jsPDF} = window.jspdf;
+        const doc = new jsPDF();
+        doc.addFileToVFS('malgun.ttf', _fonts);
+        doc.addFont('malgun.ttf', 'malgun', 'normal');
+        doc.setFont('malgun');
+        doc.setFontSize(9);
+
+        const fontNm = 'malgun';
+        const fontSty = 'normal';
+        const fontSiz = 8;
+        const pageWidth = Math.floor(doc.internal.pageSize.getWidth());
+        const margin = 5;
+        const contentWidth = pageWidth - margin * 2 // 좌우 여백 제외
+        // 목차용
+        let indexPageInfo = [];
+
+        // 첫번째 페이지 여부
+        let isFirstPage = true;
+        for(let json of jsonList){
+            if(!isFirstPage){
+                doc.addPage();
+            }
+            isFirstPage = false;
+            // const startY = doc.lastAutoTable?.finalY + 15 || 10;
+
+            // 목차 데이터 가공
+            indexPageInfo.push([
+                {content:indexPageInfo.length + 1, styles: {halign: 'center'}},
+                {content:json.apiInfo.apiId, styles: {halign: 'center'}},
+                json.apiInfo.apiNm,
+                {content:json.apiInfo.grpCodeNm, styles: {halign: 'center'}},
+                {content:json.apiInfo.jobTpNm, styles: {halign: 'center'}},
+                {content:doc.internal.getNumberOfPages(), styles: {halign: 'center'}}
+            ])
+
+            // title
+            doc.autoTable({
+                // startY: startY,
+                startY: 10,
+                margin: {left: margin, right: margin},
+                styles: {font: fontNm, fontStyle: fontSty, fontSize: 12, halign: 'center', valign: 'middle', lineColor:[0,0,0], lineWidth: 0.1, fillColor: [0, 51, 102], textColor: 255},
+                body: [[{content:'키움 REST API'}]],
+                columnStyles: {
+                    0: {cellWidth: Math.floor(contentWidth)},
+                },
+                theme: 'grid'
+            });
+
+            // API 정보
+            doc.autoTable({
+                startY: doc.lastAutoTable.finalY,
+                margin: {left: margin, right: margin},
+                headStyles: {font: fontNm, fontStyle: fontSty, fontSize: fontSiz, valign: 'middle', halign: 'center', lineColor:[0,0,0], lineWidth: 0.1, fillColor: [183, 181, 175], textColor: 0},
+                bodyStyles: {font: fontNm, fontStyle: fontSty, fontSize: fontSiz, valign: 'middle', halign: 'left', lineColor:[0,0,0], lineWidth: 0.1},
+                head: [[{content:'API 정보', colSpan:2}]],
+                body: [
+                    [{content:'메뉴 위치', styles: {halign: 'center'}}, json.apiInfo.grpCodeNm + ' > ' + json.apiInfo.jobTpNm + ' > ' + json.apiInfo.apiNm + '('+ json.apiInfo.apiId +')'],
+                    [{content:'API 명', styles: {halign: 'center'}}, json.apiInfo.apiNm],
+                    [{content:'API ID', styles: {halign: 'center'}}, json.apiInfo.apiId],
+                ],
+                columnStyles: {
+                    0: {cellWidth: Math.floor(contentWidth * 0.3)},
+                    1: {cellWidth: Math.floor(contentWidth * 0.7)}
+                },
+                theme: 'grid'
+            });
+
+            // 기본 정보
+            doc.autoTable({
+                startY: doc.lastAutoTable.finalY,
+                margin: {left: margin, right: margin},
+                headStyles: {font: fontNm, fontStyle: fontSty, fontSize: fontSiz, valign: 'middle', halign: 'center', lineColor:[0,0,0], lineWidth: 0.1, fillColor: [183, 181, 175], textColor: 0},
+                bodyStyles: {font: fontNm, fontStyle: fontSty, fontSize: fontSiz, valign: 'middle', halign: 'left', lineColor:[0,0,0], lineWidth: 0.1},
+                head: [[{content:'기본정보', colSpan:2}]],
+                body: [
+                    [{content:'Method', styles: {halign: 'center'}}, json.apiInfo.jobMethod],
+                    [{content:'운영 도메인', styles: {halign: 'center'}}, json.apiInfo.jobRealDomain],
+                    [{content:'모의투자 도메인', styles: {halign: 'center'}}, json.apiInfo.jobSimulateDomain + '(KRX만 지원가능)'],
+                    [{content:'URL', styles: {halign: 'center'}}, json.apiInfo.svcUri],
+                    [{content:'Format', styles: {halign: 'center'}}, json.apiInfo.jobFormat],
+                    [{content:'Content-Type', styles: {halign: 'center'}}, json.apiInfo.jobContentType],
+                ],
+                columnStyles: {
+                    0: {cellWidth: Math.floor(contentWidth * 0.3)},
+                    1: {cellWidth: Math.floor(contentWidth * 0.7)}
+                },
+                theme: 'grid'
+            });
+
+            // 개요
+            doc.autoTable({
+                startY: doc.lastAutoTable.finalY,
+                margin: {left: margin, right: margin},
+                headStyles: {font: fontNm, fontStyle: fontSty, fontSize: fontSiz, valign: 'middle', halign: 'center', lineColor:[0,0,0], lineWidth: 0.1, fillColor: [183, 181, 175], textColor: 0},
+                bodyStyles: {font: fontNm, fontStyle: fontSty, fontSize: fontSiz, valign: 'middle', halign: 'left', lineColor:[0,0,0], lineWidth: 0.1},
+                head: [[{content:'개요'}]],
+                body: [
+                    [{content: json.apiInfo.apiDc? json.apiInfo.apiDc.replace(/<br\s*\/?>|<\/br>/gi, '\n').replaceAll('&lt;br&gt;', '\n') : json.apiInfo.apiDc || ''}],
+                ],
+                columnStyles: {
+                    0: {cellWidth: Math.floor(contentWidth)},
+                },
+                theme: 'grid'
+            });
+
+            // 요청 헤더 데이터
+            let requestHeaderData = json.commonHeader.filter(item => item.inptOutputTp == 'I').map((item, idx) => {
+                return [
+                    {content: 'Header', styles: {valign: 'middle', halign: 'center'}},
+                    item.itemId,
+                    item.itemNm,
+                    {content: item.type||'', styles: {halign: 'center'}},
+                    {content: item.esntYn||'', styles: {halign: 'center'}},
+                    {content: item.lngt||'', styles: {halign: 'center'}},
+                    item.itemDc? item.itemDc.replace(/<br\s*\/?>|<\/br>/gi, '\n').replaceAll('&lt;br&gt;', '\n') : item.itemDc || ''
+                ];
+            });
+
+            // 요청 바디 데이터
+            let requestBodyData = json.apiTrIo.filter(item => item.inptOutputTp == 'I').map((item, idx) => {
+                return [
+                    {content: 'Body', styles: {valign: 'middle', halign: 'center'}},
+                    item.itemId,
+                    item.itemNm,
+                    {content: item.type||'', styles: {halign: 'center'}},
+                    {content: item.esntYn||'', styles: {halign: 'center'}},
+                    {content: item.lngt||'', styles: {halign: 'center'}},
+                    item.itemDc? item.itemDc.replace(/<br\s*\/?>|<\/br>/gi, '\n').replaceAll('&lt;br&gt;', '\n') : item.itemDc || ''
+                ];
+            });
+
+            // 요청 데이터 (헤더 + 바디)
+            let totalRequestData = [...requestHeaderData, ...requestBodyData];
+
+            // 요청
+            doc.autoTable({
+                startY: doc.lastAutoTable.finalY,
+                margin: {left: margin, right: margin},
+                headStyles: {font: fontNm, fontStyle: fontSty, fontSize: fontSiz, valign: 'middle', halign: 'center', lineColor:[0,0,0], lineWidth: 0.1, fillColor: [183, 181, 175], textColor: 0},
+                bodyStyles: {font: fontNm, fontStyle: fontSty, fontSize: fontSiz, valign: 'middle', halign: 'left', lineColor:[0,0,0], lineWidth: 0.1},
+                head: [
+                    [{content:'Request', colSpan:7}],
+                    ['구분','Element','한글명','Type','Required','Length','Description']
+                ],
+                body: totalRequestData,
+                columnStyles: {
+                    0: {cellWidth: Math.floor(contentWidth * 0.09)},
+                    1: {cellWidth: Math.floor(contentWidth * 0.15)},
+                    2: {cellWidth: Math.floor(contentWidth * 0.15)},
+                    3: {cellWidth: Math.floor(contentWidth * 0.07)},
+                    4: {cellWidth: Math.floor(contentWidth * 0.07)},
+                    5: {cellWidth: Math.floor(contentWidth * 0.07)},
+                    6: {cellWidth: Math.floor(contentWidth * 0.4)}
+                },
+                theme: 'grid'
+            });
+
+            // 요청 헤더 데이터
+            let responseHeaderData = json.commonHeader.filter(item => item.inptOutputTp == 'O').map((item, idx) => {
+                return [
+                    {content: 'Header', styles: {valign: 'middle', halign: 'center'}},
+                    item.itemId,
+                    item.itemNm,
+                    {content: item.type||'', styles: {halign: 'center'}},
+                    {content: item.esntYn||'', styles: {halign: 'center'}},
+                    {content: item.lngt||'', styles: {halign: 'center'}},
+                    item.itemDc? item.itemDc.replace(/<br\s*\/?>|<\/br>/gi, '\n').replaceAll('&lt;br&gt;', '\n') : item.itemDc || ''
+                ];
+            });
+
+            // 요청 바디 데이터
+            let responseBodyData = json.apiTrIo.filter(item => item.inptOutputTp == 'O').map((item, idx) => {
+                return [
+                    {content: 'Body', styles: {valign: 'middle', halign: 'center'}},
+                    item.itemId,
+                    item.itemNm,
+                    {content: item.type||'', styles: {halign: 'center'}},
+                    {content: item.esntYn||'', styles: {halign: 'center'}},
+                    {content: item.lngt||'', styles: {halign: 'center'}},
+                    item.itemDc? item.itemDc.replace(/<br\s*\/?>|<\/br>/gi, '\n').replaceAll('&lt;br&gt;', '\n') : item.itemDc || ''
+                ];
+            });
+
+            // 조건검색 실시간일 경우 하드코딩
+            if(json.apiInfo.apiId == 'ka10173'){
+                responseBodyData.unshift([
+                    // {content:'Body', rowSpan: responseBodyData.length+1, styles: {valign: 'middle', halign: 'center'}},
+                    {content:'Body', styles: {valign: 'middle', halign: 'center'}},
+                    {content:'조회 데이터', colSpan:6, styles: {halign: 'center', fillColor: [183, 181, 175], textColor: 0}}
+                ])
+            }
+
+            // 응답 데이터 (헤더 + 바디)
+            let totalResponseData = [...responseHeaderData, ...responseBodyData];
+
+            // 조건 검색일 경우 응답 body가 2개
+            if(json.apiInfo.apiId == 'ka10173'){
+                let ka10173Output =   [
+                    // [{content: 'Body', rowSpan: 12, styles: {valign: 'middle', halign: 'center'}},{content:'실시간 데이터', colSpan:6, styles: {halign: 'center', fillColor: [183, 181, 175], textColor: 0}}],
+                    [{content: 'Body', styles: {valign: 'middle', halign: 'center'}},{content:'실시간 데이터', colSpan:6, styles: {halign: 'center', fillColor: [183, 181, 175], textColor: 0}}],
+                    [{content: 'Body', styles: {valign: 'middle', halign: 'center'}}, 'data', '검색결과데이터', {content: 'LIST', styles: {halign: 'center'}}, {content: 'Y', styles: {halign: 'center'}}, '', ''],
+                    [{content: 'Body', styles: {valign: 'middle', halign: 'center'}}, 'trnm', '서비스명', {content: 'String', styles: {halign: 'center'}}, {content: 'Y', styles: {halign: 'center'}}, '', 'REAL'],
+                    [{content: 'Body', styles: {valign: 'middle', halign: 'center'}}, '- type', '실시간 항목', {content: 'String', styles: {halign: 'center'}}, {content: 'Y', styles: {halign: 'center'}}, {content: '2', styles: {halign: 'center'}}, 'TR 명(0A,0B....)'],
+                    [{content: 'Body', styles: {valign: 'middle', halign: 'center'}}, '- name', '실시간 항목명', {content: 'String', styles: {halign: 'center'}}, {content: 'Y', styles: {halign: 'center'}}, '', '종목코드'],
+                    [{content: 'Body', styles: {valign: 'middle', halign: 'center'}}, '- values', '실시간 수신 값', {content: 'Object', styles: {halign: 'center'}}, {content: 'Y', styles: {halign: 'center'}}, '', ''],
+                    [{content: 'Body', styles: {valign: 'middle', halign: 'center'}}, '- - 841', '일련번호', {content: 'String', styles: {halign: 'center'}}, {content: 'Y', styles: {halign: 'center'}}, '', ''],
+                    [{content: 'Body', styles: {valign: 'middle', halign: 'center'}}, '- - 9001', '종목코드', {content: 'String', styles: {halign: 'center'}}, {content: 'Y', styles: {halign: 'center'}}, '', ''],
+                    [{content: 'Body', styles: {valign: 'middle', halign: 'center'}}, '- - 843', '삽입삭제 구분', {content: 'String', styles: {halign: 'center'}}, {content: 'Y', styles: {halign: 'center'}}, '', 'I: 삽입, D: 삭제'],
+                    [{content: 'Body', styles: {valign: 'middle', halign: 'center'}}, '- - 20', '체결시간', {content: 'String', styles: {halign: 'center'}}, {content: 'Y', styles: {halign: 'center'}}, '', ''],
+                    [{content: 'Body', styles: {valign: 'middle', halign: 'center'}}, '- - 907', '매도/수 구분', {content: 'String', styles: {halign: 'center'}}, {content: 'Y', styles: {halign: 'center'}}, '', ''],
+                ];
+
+                totalResponseData = [...totalResponseData, ...ka10173Output]
+            }
+
+            // 응답
+            doc.autoTable({
+                startY: doc.lastAutoTable.finalY,
+                margin: {left: margin, right: margin},
+                headStyles: {font: fontNm, fontStyle: fontSty, fontSize: fontSiz, valign: 'middle', halign: 'center', lineColor:[0,0,0], lineWidth: 0.1, fillColor: [183, 181, 175], textColor: 0},
+                bodyStyles: {font: fontNm, fontStyle: fontSty, fontSize: fontSiz, valign: 'middle', halign: 'left', lineColor:[0,0,0], lineWidth: 0.1},
+                head: [
+                    [{content:'Response', colSpan:7}],
+                    ['구분','Element','한글명','Type','Required','Length','Description']
+                ],
+                body: totalResponseData,
+                columnStyles: {
+                    0: {cellWidth: Math.floor(contentWidth * 0.09)},
+                    1: {cellWidth: Math.floor(contentWidth * 0.15)},
+                    2: {cellWidth: Math.floor(contentWidth * 0.15)},
+                    3: {cellWidth: Math.floor(contentWidth * 0.07)},
+                    4: {cellWidth: Math.floor(contentWidth * 0.07)},
+                    5: {cellWidth: Math.floor(contentWidth * 0.07)},
+                    6: {cellWidth: Math.floor(contentWidth * 0.4)}
+                },
+                theme: 'grid'
+            });
+
+            // Request 예제 생성 -> json.apiTrIo에서 추출한 input 속성들의 array에서 예제를 만듬
+            let requestExample = {};
+            let listYn = false;
+            let listTarget = null;
+            let requestIoBody = json.apiTrIo.filter(item => item.inptOutputTp == 'I');
+
+            // 실시간일 경우 request 형식 가공
+            for(let item of requestIoBody){
+                if(item.type == 'LIST'){
+                    listYn = true;
+                    requestExample[item.itemId] = [{}];
+                    listTarget = requestExample[item.itemId];
+                }else if(listYn && item.itemId.indexOf('-') >= 0){
+                    listTarget[0][item.itemId.replaceAll('- ', '')] = [item.sampData];
+                }else {
+                    requestExample[item.itemId] = item.sampData;
+                }
+            }
+
+            // Request Example
+            doc.autoTable({
+                startY: doc.lastAutoTable.finalY,
+                margin: {left: margin, right: margin},
+                headStyles: {font: fontNm, fontStyle: fontSty, fontSize: fontSiz, valign: 'middle', halign: 'center', lineColor:[0,0,0], lineWidth: 0.1, fillColor: [183, 181, 175], textColor: 0},
+                bodyStyles: {font: fontNm, fontStyle: fontSty, fontSize: fontSiz, valign: 'middle', halign: 'left', lineColor:[0,0,0], lineWidth: 0.1},
+                head: [[{content:'Request Example'}]],
+                body: [
+                    [{content: JSON.stringify(requestExample, null, 4)}],
+                ],
+                columnStyles: {
+                    0: {cellWidth: Math.floor(contentWidth)},
+                },
+                theme: 'grid'
+            });
+
+            // Response 예제 body
+            let rsltData;
+            try {
+                rsltData = JSON.stringify(JSON.parse(json.apiInfo.rsltData), null, 4);
+            } catch (err) {
+                rsltData = json.apiInfo.rsltData.replaceAll('\t', '    ');
+            }
+
+            // Response Example
+            doc.autoTable({
+                startY: doc.lastAutoTable.finalY,
+                margin: {left: margin, right: margin},
+                headStyles: {font: fontNm, fontStyle: fontSty, fontSize: fontSiz, valign: 'middle', halign: 'center', lineColor:[0,0,0], lineWidth: 0.1, fillColor: [183, 181, 175], textColor: 0},
+                bodyStyles: {font: fontNm, fontStyle: fontSty, fontSize: fontSiz, valign: 'middle', halign: 'left', lineColor:[0,0,0], lineWidth: 0.1},
+                head: [[{content:'Response Example'}]],
+                body: [
+                    [{content: rsltData}],
+                ],
+                columnStyles: {
+                    0: {cellWidth: Math.floor(contentWidth)},
+                },
+                theme: 'grid'
+            });
+        }
+
+        // 오류 코드 리스트 목차 추가
+        if(errorCodeList && errorCodeList.length > 0){
+            doc.addPage();
+
+            // 오류 코드 목차 데이터 가공
+            indexPageInfo.push([
+                {content:indexPageInfo.length + 1, styles: {halign: 'center'}},
+                {content:'공통', styles: {halign: 'center'}},
+                '오류코드',
+                {content:'', styles: {halign: 'center'}},
+                {content:'', styles: {halign: 'center'}},
+                {content:doc.internal.getNumberOfPages(), styles: {halign: 'center'}}
+            ])
+
+            // title
+            doc.autoTable({
+                startY: 10,
+                margin: {left: margin, right: margin},
+                styles: {font: fontNm, fontStyle: fontSty, fontSize: 12, halign: 'center', valign: 'middle', lineColor:[0,0,0], lineWidth: 0.1, fillColor: [0, 51, 102], textColor: 255},
+                body: [[{content:'키움 REST API'}]],
+                columnStyles: {
+                    0: {cellWidth: Math.floor(contentWidth)},
+                },
+                theme: 'grid'
+            });
+
+            // 오류코드 데이터
+            let errorCodeListData = errorCodeList.map((item, idx) => {
+                return [
+                    {content: idx+1, styles: {valign: 'middle', halign: 'center'}},
+                    {content: item.errorCode, styles: {valign: 'middle', halign: 'center'}},
+                    {content: item.errorMsg, styles: {valign: 'middle', halign: 'left'}},
+                ];
+            });
+
+            // 요청
+            doc.autoTable({
+                startY: doc.lastAutoTable.finalY,
+                margin: {left: margin, right: margin},
+                headStyles: {font: fontNm, fontStyle: fontSty, fontSize: fontSiz, valign: 'middle', halign: 'center', lineColor:[0,0,0], lineWidth: 0.1, fillColor: [183, 181, 175], textColor: 0},
+                bodyStyles: {font: fontNm, fontStyle: fontSty, fontSize: fontSiz, valign: 'middle', halign: 'left', lineColor:[0,0,0], lineWidth: 0.1},
+                head: [
+                    ['No,','오류코드','오류메시지']
+                ],
+                body: errorCodeListData,
+                columnStyles: {
+                    0: {cellWidth: Math.floor(contentWidth * 0.1)},
+                    1: {cellWidth: Math.floor(contentWidth * 0.2)},
+                    2: {cellWidth: Math.floor(contentWidth * 0.7)},
+                },
+                theme: 'grid'
+            });
+        }
+
+        // 목차 페이지 생성
+        const indexDoc = new jsPDF();
+        indexDoc.addFileToVFS('malgun.ttf', _fonts);
+        indexDoc.addFont('malgun.ttf', 'malgun', 'normal');
+        indexDoc.setFont('malgun');
+        indexDoc.setFontSize(9);
+        indexDoc.autoTable({
+            startY: 10,
+            margin: {left: margin, right: margin},
+            headStyles: {font: fontNm, fontStyle: fontSty, fontSize: fontSiz, valign: 'middle', halign: 'center', lineColor:[0,0,0], lineWidth: 0.1, fillColor: [183, 181, 175], textColor: 0},
+            bodyStyles: {font: fontNm, fontStyle: fontSty, fontSize: fontSiz, valign: 'middle', halign: 'left', lineColor:[0,0,0], lineWidth: 0.1},
+            head: [
+                [{content:'키움 REST API 목차', colSpan:6}],
+                ['No.','API ID','API 명','대분류','중분류','페이지번호']
+            ],
+            body: indexPageInfo,
+            columnStyles: {
+                0: {cellWidth: Math.floor(contentWidth * 0.1)},
+                1: {cellWidth: Math.floor(contentWidth * 0.15)},
+                2: {cellWidth: Math.floor(contentWidth * 0.35)},
+                3: {cellWidth: Math.floor(contentWidth * 0.15)},
+                4: {cellWidth: Math.floor(contentWidth * 0.15)},
+                5: {cellWidth: Math.floor(contentWidth * 0.1)},
+            },
+            theme: 'grid'
+        });
+
+        // 목차 페이지 총 수
+        const indexTotalPageCount = indexDoc.internal.getNumberOfPages();
+
+        // 목차 페이지 수 만큼 새 페이지 생성
+        for(let i = 0; i < indexTotalPageCount; ++i){
+            doc.insertPage(1);
+        }
+
+        // 목차 페이지 수 만큼 미리 저장해둔 목차 데이터 수정
+        for(let info of indexPageInfo){
+            info[info.length-1].content += indexTotalPageCount;
+        }
+
+        // 첫번째 페이지 셋팅
+        doc.setPage(1);
+        // 목차 테이블 다시 생성
+        doc.autoTable({
+            startY: 10,
+            margin: {left: margin, right: margin},
+            headStyles: {font: fontNm, fontStyle: fontSty, fontSize: fontSiz, valign: 'middle', halign: 'center', lineColor:[0,0,0], lineWidth: 0.1, fillColor: [183, 181, 175], textColor: 0},
+            bodyStyles: {font: fontNm, fontStyle: fontSty, fontSize: fontSiz, valign: 'middle', halign: 'left', lineColor:[0,0,0], lineWidth: 0.1},
+            head: [
+                [{content:'키움 REST API 목차', colSpan:6}],
+                ['No.','API ID','API 명','대분류','중분류','페이지번호']
+            ],
+            body: indexPageInfo,
+            columnStyles: {
+                0: {cellWidth: Math.floor(contentWidth * 0.1)},
+                1: {cellWidth: Math.floor(contentWidth * 0.15)},
+                2: {cellWidth: Math.floor(contentWidth * 0.35)},
+                3: {cellWidth: Math.floor(contentWidth * 0.15)},
+                4: {cellWidth: Math.floor(contentWidth * 0.15)},
+                5: {cellWidth: Math.floor(contentWidth * 0.1)},
+            },
+            theme: 'grid'
+        });
+
+        // API 명세 페이지 번호 생성
+        const totalPages = doc.internal.getNumberOfPages();
+        for(let i = 1; i <= totalPages; ++i){
+            doc.setPage(i);
+            const pageSize = doc.internal.pageSize;
+            const pageHeight = pageSize.height || doc.internal.pageSize.getHeight();
+
+            doc.setFontSize(fontSiz);
+            doc.text(i + ' / ' + totalPages, Math.floor(pageWidth / 2), pageHeight - 10, {align: 'center'});
+        }
+
+        doc.save('키움 REST API 문서.pdf');
+    }
+</script>
+
+
+
+
+
+		
+
+
+<footer id="footer">
+    <div class="footer-inner">
+        <div class="footer-copyright-area">
+            <h1 class="footer-title">
+                <a href="/" class="open-api-footer-logo" title="REST API">
+                    <span class="text-blind">REST API</span>
+                </a>
+            </h1>
+
+        </div>
+        <nav class="openApi-footer-gnb">
+            <h2 class="blind">하단 메뉴</h2>
+            <ul class="footer-gnb-list">
+                <li><a href="https://www.kiwoom.com/h/ir/main" target="_blank">회사소개</a></li>
+                <li><a href="https://www.kiwoom.com/h/customer/financeguide/VClauseListView" target="_blank">서비스약관</a></li>
+                <li><a href="https://www.kiwoom.com/h/customer/financeguide/VPersonalDataPolicyView" target="_blank">개인정보 처리방침</a></li>
+            </ul>
+        </nav>
+    </div>
+</footer>
+<div id="floatingArea">
+	 
+      
+
+
+
+
+
+
+     
+    <button type="button" class="btn_top"><span class="text-blind">TOP</span></button>
+</div>
+
+<script type="text/javascript">
+    const cMenu = $currentMenus.filter(function(n){
+        return (n.mid == '02020000' && n.mpath != '');
+    });
+
+    // 모바일일 경우 (태블릿 X)
+    if(window.GLOBAL_deviceType === '02' && cMenu.length){
+        $.xmit(cMenu[0].mpath);
+    }
+
+    $(document).ready(() => {
+        if('02020000' === '06000000' && window.GLOBAL_deviceType === '01'){
+            setTimeout(() => {
+                $.alert({content: "태블릿 환경에선 로그인하실 수 없습니다. PC 환경에서 접속해주시길 바랍니다.", onclose: () => {$.xmit("/main/home")}});
+            }, 100);
+        }
+    });
+
+</script>
+
+
+
+	</div>
+</body>
+</html>
+

@@ -1,0 +1,25 @@
+{
+  "name": "agent-kiwoom",
+  "private": true,
+  "version": "0.1.0",
+  "packageManager": "npm@11.2.0",
+  "engines": {
+    "node": ">=24.0.0"
+  },
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "build": "turbo run build",
+    "dev": "turbo run dev --parallel",
+    "lint": "turbo run lint",
+    "test": "turbo run test",
+    "db:generate": "npm --workspace @agent/backend run db:generate",
+    "db:push": "npm --workspace @agent/backend run db:push"
+  },
+  "devDependencies": {
+    "turbo": "^2.4.4",
+    "typescript": "^5.7.3"
+  }
+}

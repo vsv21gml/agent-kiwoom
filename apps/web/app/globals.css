@@ -1,0 +1,22 @@
+:root {
+  --app-bg-start: #f4f6ef;
+  --app-bg-end: #dde7d6;
+  --app-accent: #305f4f;
+  --app-surface: rgba(255, 255, 255, 0.78);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: radial-gradient(circle at 10% 10%, #f8fbef 0%, var(--app-bg-start) 35%, var(--app-bg-end) 100%);
+  color: #1e2a23;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
