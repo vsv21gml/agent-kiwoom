@@ -24,6 +24,14 @@ export class KiwoomController {
     return this.kiwoom.getQuote(symbol);
   }
 
+  @Get("daily-close")
+  async getDailyClose(@Query("symbol") symbol: string) {
+    if (!symbol) {
+      return { error: "symbol is required" };
+    }
+    return this.kiwoom.getDailyClosePrice(symbol);
+  }
+
   @Post("quotes")
   async getQuotes(@Body() body: { symbols?: string[] }) {
     const symbols = body.symbols?.filter(Boolean) ?? [];
@@ -85,6 +93,44 @@ export class KiwoomController {
   @Get("conditions")
   async getConditionList() {
     return this.kiwoom.getConditionList();
+  }
+
+  @Get("top-trading-value")
+  async getTopTradingValue(
+    @Query("marketType") marketType?: string,
+    @Query("includeManaged") includeManaged?: string,
+    @Query("stexTp") stexTp?: string,
+  ) {
+    const type = marketType ?? "0";
+    return this.kiwoom.getTopTradingValue({
+      marketType: type,
+      includeManaged: includeManaged === "true",
+      stexType: stexTp,
+    });
+  }
+
+  @Get("top-trading-volume")
+  async getTopTradingVolume(
+    @Query("marketType") marketType?: string,
+    @Query("includeManaged") includeManaged?: string,
+    @Query("creditType") creditType?: string,
+    @Query("volumeThreshold") volumeThreshold?: string,
+    @Query("priceType") priceType?: string,
+    @Query("tradeValueType") tradeValueType?: string,
+    @Query("marketOpenType") marketOpenType?: string,
+    @Query("stexTp") stexTp?: string,
+  ) {
+    const type = marketType ?? "000";
+    return this.kiwoom.getTopTradingVolume({
+      marketType: type,
+      includeManaged: includeManaged === "true",
+      creditType,
+      volumeThreshold,
+      priceType,
+      tradeValueType,
+      marketOpenType,
+      stexType: stexTp,
+    });
   }
 
   @Post("conditions/search")

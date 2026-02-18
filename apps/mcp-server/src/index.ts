@@ -80,6 +80,23 @@ const createServer = () => {
   );
 
   server.registerTool(
+  "kiwoom_daily_close",
+  {
+    title: "Kiwoom Daily Close",
+    description: "Fetch latest daily close price by symbol.",
+    inputSchema: {
+      symbol: z.string().describe("Stock symbol, e.g. 005930"),
+    },
+  },
+  async ({ symbol }) => {
+    const data = await fetchJson(`/api/kiwoom/daily-close?symbol=${encodeURIComponent(symbol)}`);
+    return {
+      content: [{ type: "text", text: JSON.stringify(data, null, 2) }],
+    };
+  },
+  );
+
+  server.registerTool(
   "kiwoom_quotes",
   {
     title: "Kiwoom Quotes",
@@ -138,6 +155,62 @@ const createServer = () => {
   },
   async () => {
     const data = await fetchJson("/api/kiwoom/conditions");
+    return {
+      content: [{ type: "text", text: JSON.stringify(data, null, 2) }],
+    };
+  },
+  );
+
+  server.registerTool(
+  "kiwoom_top_trading_value",
+  {
+    title: "Kiwoom Top Trading Value",
+    description: "Get top trading value list (거래대금 상위). Use marketType=0 for KOSPI, 10 for KOSDAQ.",
+    inputSchema: {
+      marketType: z.string().optional().describe("0: KOSPI, 10: KOSDAQ, 50: KONEX"),
+      includeManaged: z.boolean().optional().describe("Include managed stocks"),
+      stexTp: z.string().optional().describe("Exchange type, e.g. 1"),
+    },
+  },
+  async ({ marketType, includeManaged, stexTp }) => {
+    const query = new URLSearchParams();
+    if (marketType) query.set("marketType", marketType);
+    if (includeManaged !== undefined) query.set("includeManaged", String(includeManaged));
+    if (stexTp) query.set("stexTp", stexTp);
+    const data = await fetchJson(`/api/kiwoom/top-trading-value?${query.toString()}`);
+    return {
+      content: [{ type: "text", text: JSON.stringify(data, null, 2) }],
+    };
+  },
+  );
+
+  server.registerTool(
+  "kiwoom_top_trading_volume",
+  {
+    title: "Kiwoom Top Trading Volume",
+    description: "Get top trading volume list (거래량 상위). Use marketType=000 for all, 001 for KOSPI, 101 for KOSDAQ.",
+    inputSchema: {
+      marketType: z.string().optional().describe("000: all, 001: KOSPI, 101: KOSDAQ"),
+      includeManaged: z.boolean().optional().describe("Include managed stocks"),
+      creditType: z.string().optional().describe("Credit type"),
+      volumeThreshold: z.string().optional().describe("Volume threshold code"),
+      priceType: z.string().optional().describe("Price type code"),
+      tradeValueType: z.string().optional().describe("Trade value type code"),
+      marketOpenType: z.string().optional().describe("Market open type code"),
+      stexTp: z.string().optional().describe("Exchange type, e.g. 1"),
+    },
+  },
+  async ({ marketType, includeManaged, creditType, volumeThreshold, priceType, tradeValueType, marketOpenType, stexTp }) => {
+    const query = new URLSearchParams();
+    if (marketType) query.set("marketType", marketType);
+    if (includeManaged !== undefined) query.set("includeManaged", String(includeManaged));
+    if (creditType) query.set("creditType", creditType);
+    if (volumeThreshold) query.set("volumeThreshold", volumeThreshold);
+    if (priceType) query.set("priceType", priceType);
+    if (tradeValueType) query.set("tradeValueType", tradeValueType);
+    if (marketOpenType) query.set("marketOpenType", marketOpenType);
+    if (stexTp) query.set("stexTp", stexTp);
+    const data = await fetchJson(`/api/kiwoom/top-trading-volume?${query.toString()}`);
     return {
       content: [{ type: "text", text: JSON.stringify(data, null, 2) }],
     };

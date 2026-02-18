@@ -72,6 +72,11 @@ export class AgentSchedulerService implements OnModuleInit {
     this.logger.log(`[${runId}] Market cycle start`);
 
     try {
+      if (!this.isMarketOpenNow()) {
+        this.logger.log(`[${runId}] Market closed (KRX hours). Skipping cycle.`);
+        return runId;
+      }
+
       const universe = await this.resolveUniverseSelection();
       const symbols = universe.symbols;
       if (symbols.length === 0) {
@@ -174,6 +179,33 @@ export class AgentSchedulerService implements OnModuleInit {
     }
 
     return runId;
+  }
+
+  private isMarketOpenNow() {
+    const timezone = this.config.get<string>("MARKET_TIMEZONE") ?? "Asia/Seoul";
+    const openTime = this.config.get<string>("MARKET_OPEN_HHMM") ?? "0900";
+    const closeTime = this.config.get<string>("MARKET_CLOSE_HHMM") ?? "1530";
+
+    const now = new Date();
+    const formatter = new Intl.DateTimeFormat("en-US", {
+      timeZone: timezone,
+      hour12: false,
+      weekday: "short",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+
+    const parts = formatter.formatToParts(now);
+    const weekday = parts.find((part) => part.type === "weekday")?.value ?? "";
+    const hour = parts.find((part) => part.type === "hour")?.value ?? "00";
+    const minute = parts.find((part) => part.type === "minute")?.value ?? "00";
+    const hhmm = `${hour}${minute}`;
+
+    if (["Sat", "Sun"].includes(weekday)) {
+      return false;
+    }
+
+    return hhmm >= openTime && hhmm <= closeTime;
   }
 
   async runNewsCycle() {

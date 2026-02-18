@@ -9,6 +9,8 @@ MCP server exposing Kiwoom proxy tools for ChatGPT Enterprise (Streamable HTTP).
 
 ```
 MCP_PORT=8787
+MCP_HOST=0.0.0.0
+# MCP_ALLOWED_HOSTS=localhost,127.0.0.1
 KIWOOM_PROXY_BASE_URL=http://localhost:4000
 KIWOOM_PROXY_TIMEOUT_MS=15000
 KIWOOM_PROXY_STREAM_URL=http://localhost:4000/api/kiwoom/realtime/stream
@@ -31,12 +33,15 @@ POST/GET/DELETE http://localhost:8787/mcp
 ## Tools
 
 - `kiwoom_quote`
+- `kiwoom_daily_close`
 - `kiwoom_quotes`
 - `kiwoom_account_summary`
 - `kiwoom_holdings`
 - `kiwoom_condition_list`
 - `kiwoom_condition_search`
 - `kiwoom_condition_search_and_quotes`
+- `kiwoom_top_trading_value`
+- `kiwoom_top_trading_volume`
 - `kiwoom_realtime_register`
 - `kiwoom_realtime_signal`
 - `kiwoom_realtime_signals`

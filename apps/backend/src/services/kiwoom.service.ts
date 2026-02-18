@@ -94,7 +94,11 @@ export class KiwoomService {
       };
 
       await this.logApi("POST", endpoint, requestBody, payload, response.status, response.ok);
-      return this.applyRealtimeToQuote(quote);
+      const merged = this.applyRealtimeToQuote(quote);
+      return {
+        ...merged,
+        asOf: this.getRealtimePrice(symbol)?.asOf ?? quote.asOf,
+      };
     } catch (error) {
       await this.logApi("POST", endpoint, requestBody, { error: String(error) }, 500, false);
       this.logger.error(`Failed to fetch quote for ${symbol}: ${String(error)}`);
@@ -148,7 +152,7 @@ export class KiwoomService {
     const payload = {
       trnm: "CNSRLST",
     };
-    return this.sendWebSocketRequest("CNSRLST", payload);
+    return this.sendWebSocketRequestWithApiId("CNSRLST", payload, "ka10171");
   }
 
   async requestConditionSearch(input: { seq: string; searchType?: string; stexTp?: string }) {
@@ -169,7 +173,8 @@ export class KiwoomService {
       search_type: input.searchType ?? "0",
       stex_tp: input.stexTp ?? "K",
     };
-    const response = await this.sendWebSocketRequest("CNSRREQ", payload);
+    const apiId = payload.search_type === "1" ? "ka10173" : "ka10172";
+    const response = await this.sendWebSocketRequestWithApiId("CNSRREQ", payload, apiId);
     const symbols = this.extractConditionSymbols(response);
     if (payload.search_type === "1" && symbols.length > 0) {
       await this.registerRealtimeQuotes(symbols, ["0B", "0D"]);
@@ -231,6 +236,38 @@ export class KiwoomService {
       ...quote,
       price: realtime.price,
       asOf: realtime.asOf,
+    };
+  }
+
+  async getDailyClosePrice(symbol: string) {
+    const useMock = (this.config.get<string>("KIWOOM_MOCK") ?? "true") === "true";
+    if (useMock) {
+      const mock = {
+        symbol,
+        closePrice: this.mockQuote(symbol).price,
+        asOf: new Date().toISOString(),
+        source: "mock",
+      };
+      await this.logApi("GET", `/mock/daily-close/${symbol}`, null, mock, 200, true);
+      return mock;
+    }
+
+    const { payload } = await this.postStkInfo("ka10081", {
+      stk_cd: symbol,
+      base_dt: "",
+      upd_dt: "1",
+    });
+
+    const list = (payload.list ?? payload.items ?? payload.stk_chart ?? []) as Array<Record<string, unknown>>;
+    const first = list[0] ?? (payload as Record<string, unknown>);
+    const close = this.toNumber(first.close ?? first.stk_clpr ?? first.close_prc ?? first.clpr ?? 0);
+    const date = String(first.date ?? first.stk_date ?? first.base_dt ?? "").trim();
+
+    return {
+      symbol,
+      closePrice: Math.abs(close),
+      asOf: date || new Date().toISOString(),
+      source: "ka10081",
     };
   }
 
@@ -323,13 +360,54 @@ export class KiwoomService {
       stex_tp: stexType,
     };
 
-    const { payload } = await this.postStkInfo("ka10032", body);
+    const { payload } = await this.postRankInfo("ka10032", body);
     const list = (payload.trde_prica_upper ?? payload.list ?? payload.items ?? []) as Array<Record<string, unknown>>;
     return list.map((row) => ({
       symbol: String(row.stk_cd ?? row.code ?? row.symbol ?? "").trim(),
       name: String(row.stk_nm ?? row.name ?? "").trim(),
       price: Math.abs(this.toNumber(row.cur_prc ?? row.price ?? row.now_price ?? 0)),
       volumeValue: this.toNumber(row.trde_prica ?? row.trde_amt ?? row.trade_value ?? row.amount ?? 0),
+    }));
+  }
+
+  async getTopTradingVolume(input: {
+    marketType: string;
+    includeManaged?: boolean;
+    creditType?: string;
+    volumeThreshold?: string;
+    priceType?: string;
+    tradeValueType?: string;
+    marketOpenType?: string;
+    stexType?: string;
+  }) {
+    const useMock = (this.config.get<string>("KIWOOM_MOCK") ?? "true") === "true";
+    if (useMock) {
+      const mock = [
+        { symbol: "005930", name: "Samsung Electronics", price: 70000, volume: 10000000 },
+      ];
+      await this.logApi("GET", `/mock/top-trading-volume/${input.marketType}`, input, mock, 200, true);
+      return mock;
+    }
+
+    const body = {
+      mrkt_tp: input.marketType,
+      sort_tp: "1",
+      mang_stk_incls: input.includeManaged ? "0" : "1",
+      crd_tp: input.creditType ?? "0",
+      trde_qty_tp: input.volumeThreshold ?? "0",
+      pric_tp: input.priceType ?? "0",
+      trde_prica_tp: input.tradeValueType ?? "0",
+      mrkt_open_tp: input.marketOpenType ?? "1",
+      stex_tp: input.stexType ?? "1",
+    };
+
+    const { payload } = await this.postRankInfo("ka10030", body);
+    const list = (payload.tdy_trde_qty_upper ?? payload.list ?? payload.items ?? []) as Array<Record<string, unknown>>;
+    return list.map((row) => ({
+      symbol: String(row.stk_cd ?? row.code ?? row.symbol ?? "").trim(),
+      name: String(row.stk_nm ?? row.name ?? "").trim(),
+      price: Math.abs(this.toNumber(row.cur_prc ?? row.price ?? row.now_price ?? 0)),
+      volume: this.toNumber(row.trde_qty ?? row.volume ?? row.qty ?? 0),
     }));
   }
 
@@ -402,6 +480,47 @@ export class KiwoomService {
     const baseUrl = this.config.get<string>("KIWOOM_BASE_URL") ?? "";
     const accessToken = await this.getAccessToken();
     const endpoint = `${baseUrl}/api/dostk/stkinfo`;
+    const headers: Record<string, string> = {
+      "Content-Type": "application/json;charset=UTF-8",
+      authorization: `Bearer ${accessToken}`,
+      "api-id": apiId,
+    };
+    if (contYn) {
+      headers["cont-yn"] = contYn;
+    }
+    if (nextKey) {
+      headers["next-key"] = nextKey;
+    }
+
+    const response = await this.rateLimitedFetch(endpoint, {
+      method: "POST",
+      headers,
+      body: JSON.stringify(body),
+    });
+
+    const payload = (await response.json().catch(() => ({}))) as Record<string, unknown>;
+    const success = response.ok && Number(payload.return_code ?? 0) === 0;
+    await this.logApi("POST", endpoint, body, payload, response.status, success);
+
+    if (!response.ok) {
+      throw new Error(`Kiwoom request failed: ${response.status}`);
+    }
+    if (Number(payload.return_code ?? 0) !== 0) {
+      throw new Error(`Kiwoom return_code failed: ${String(payload.return_msg ?? payload.return_code)}`);
+    }
+
+    return { payload, response };
+  }
+
+  private async postRankInfo(
+    apiId: string,
+    body: Record<string, unknown>,
+    contYn?: string,
+    nextKey?: string,
+  ): Promise<{ payload: Record<string, unknown>; response: Response }> {
+    const baseUrl = this.config.get<string>("KIWOOM_BASE_URL") ?? "";
+    const accessToken = await this.getAccessToken();
+    const endpoint = `${baseUrl}/api/dostk/rkinfo`;
     const headers: Record<string, string> = {
       "Content-Type": "application/json;charset=UTF-8",
       authorization: `Bearer ${accessToken}`,
@@ -604,12 +723,39 @@ export class KiwoomService {
       };
 
       const onOpen = () => {
-        this.wsConnected = true;
         this.ws?.on("message", (data) => this.handleRealtimeMessage(data));
+        const loginPayload = { trnm: "LOGIN", token: accessToken };
+        this.ws?.send(JSON.stringify(loginPayload));
+        const onLogin = (data: WebSocket.RawData) => {
+          const text = typeof data === "string" ? data : data.toString("utf-8");
+          let payload: Record<string, unknown> | null = null;
+          try {
+            payload = JSON.parse(text) as Record<string, unknown>;
+          } catch {
+            return;
+          }
+          const trnm = String(payload?.trnm ?? "");
+          if (trnm === "PING") {
+            this.ws?.send(text);
+            return;
+          }
+          if (trnm !== "LOGIN") {
+            return;
+          }
+          const returnCode = String(payload?.return_code ?? "");
+          if (returnCode !== "0") {
+            cleanup();
+            reject(new Error(`Kiwoom WS LOGIN failed: ${String(payload?.return_msg ?? returnCode)}`));
+            return;
+          }
+          this.ws?.off("message", onLogin);
+          this.wsConnected = true;
+          cleanup();
+          resolve();
+        };
+        this.ws?.on("message", onLogin);
         this.ws?.on("close", () => this.handleWebSocketClose());
         this.ws?.on("error", (error) => this.handleWebSocketError(error));
-        cleanup();
-        resolve();
       };
 
       const onError = (error: Error) => {
@@ -659,6 +805,11 @@ export class KiwoomService {
       return;
     }
     if (!payload) {
+      return;
+    }
+
+    if (payload.trnm === "PING") {
+      this.ws?.send(text);
       return;
     }
 
@@ -771,6 +922,81 @@ export class KiwoomService {
       this.pendingWsRequests.set(trnm, queue);
 
       ws.send(JSON.stringify(payload));
+    });
+  }
+
+  private async sendWebSocketRequestWithApiId(
+    trnm: string,
+    payload: Record<string, unknown>,
+    apiId: string,
+    timeoutMs: number = 10_000,
+  ) {
+    const url = this.resolveWebSocketUrl();
+    const accessToken = await this.getAccessToken();
+    await this.logApi("WS", url, { ...payload, apiId }, { status: "sent" }, 200, true);
+
+    return new Promise<Record<string, unknown>>((resolve, reject) => {
+      const ws = new WebSocket(url, {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          "api-id": apiId,
+        },
+      });
+
+      const timer = setTimeout(() => {
+        ws.close();
+        reject(new Error(`Kiwoom websocket request timeout for ${trnm}`));
+      }, timeoutMs);
+
+      const cleanup = () => {
+        clearTimeout(timer);
+        ws.removeAllListeners();
+      };
+
+      ws.on("open", () => {
+        ws.send(JSON.stringify({ trnm: "LOGIN", token: accessToken }));
+      });
+
+      ws.on("message", (data) => {
+        const text = typeof data === "string" ? data : data.toString("utf-8");
+        let response: Record<string, unknown> | null = null;
+        try {
+          response = JSON.parse(text) as Record<string, unknown>;
+        } catch {
+          return;
+        }
+        if (!response) {
+          return;
+        }
+        const responseTrnm = String(response.trnm ?? "");
+        if (responseTrnm === "PING") {
+          ws.send(text);
+          return;
+        }
+        if (responseTrnm === "LOGIN") {
+          const returnCode = String(response?.return_code ?? "");
+          if (returnCode !== "0") {
+            cleanup();
+            ws.close();
+            reject(new Error(`Kiwoom WS LOGIN failed: ${String(response?.return_msg ?? returnCode)}`));
+            return;
+          }
+          ws.send(JSON.stringify(payload));
+          return;
+        }
+        if (responseTrnm !== trnm) {
+          return;
+        }
+        cleanup();
+        ws.close();
+        resolve(response);
+      });
+
+      ws.on("error", (error) => {
+        cleanup();
+        ws.close();
+        reject(error as Error);
+      });
     });
   }
 
