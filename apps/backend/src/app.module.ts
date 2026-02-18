@@ -22,9 +22,11 @@ import { HealthController } from "./monitoring/health.controller";
 import { MonitoringController } from "./monitoring/monitoring.controller";
 import { StrategyController } from "./strategy/strategy.controller";
 import { UniverseController } from "./universe/universe.controller";
+import { KiwoomController } from "./kiwoom/kiwoom.controller";
 import { AgentSchedulerService } from "./services/agent-scheduler.service";
 import { GeminiService } from "./services/gemini.service";
 import { KiwoomService } from "./services/kiwoom.service";
+import { KiwoomEventsService } from "./services/kiwoom-events.service";
 import { MonitoringEventsService } from "./services/monitoring-events.service";
 import { MonitoringService } from "./services/monitoring.service";
 import { NewsService } from "./services/news.service";
@@ -81,7 +83,7 @@ const isTrue = (value?: string) => value?.toLowerCase() === "true";
     UniverseRevision,
   ]),
   ],
-  controllers: [HealthController, MonitoringController, StrategyController, UniverseController],
+  controllers: [HealthController, MonitoringController, StrategyController, UniverseController, KiwoomController],
   providers: [
     KiwoomService,
     GeminiService,
@@ -90,6 +92,7 @@ const isTrue = (value?: string) => value?.toLowerCase() === "true";
     TradingService,
     AgentSchedulerService,
     MonitoringEventsService,
+    KiwoomEventsService,
     UniverseService,
     MonitoringService,
   ],

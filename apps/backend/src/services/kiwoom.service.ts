@@ -5,6 +5,7 @@ import { Repository } from "typeorm";
 import WebSocket from "ws";
 import { Quote } from "../types";
 import { ApiCallLog } from "../entities";
+import { KiwoomEventsService } from "./kiwoom-events.service";
 
 @Injectable()
 export class KiwoomService {
@@ -25,10 +26,15 @@ export class KiwoomService {
   >();
   private readonly priceHistory = new Map<string, Array<{ price: number; at: number }>>();
   private readonly subscribedSymbols = new Set<string>();
+  private readonly pendingWsRequests = new Map<
+    string,
+    Array<{ resolve: (payload: Record<string, unknown>) => void; reject: (error: Error) => void; timer: NodeJS.Timeout }>
+  >();
 
   constructor(
     @Inject(ConfigService) private readonly config: ConfigService,
     @InjectRepository(ApiCallLog) private readonly apiCallLogRepository: Repository<ApiCallLog>,
+    @Inject(KiwoomEventsService) private readonly kiwoomEvents: KiwoomEventsService,
   ) {}
 
   async getQuote(symbol: string): Promise<Quote> {
@@ -96,7 +102,7 @@ export class KiwoomService {
     }
   }
 
-  async registerRealtimeQuotes(symbols: string[], types: string[] = ["0B"]) {
+  async registerRealtimeQuotes(symbols: string[], types?: string[]) {
     const useMock = (this.config.get<string>("KIWOOM_MOCK") ?? "true") === "true";
     if (useMock || symbols.length === 0) {
       return;
@@ -116,7 +122,7 @@ export class KiwoomService {
       data: [
         {
           item: newSymbols,
-          type: types,
+          type: types && types.length > 0 ? types : ["0B"],
         },
       ],
     };
@@ -126,6 +132,49 @@ export class KiwoomService {
       this.subscribedSymbols.add(symbol);
     }
     await this.logApi("WS", this.resolveWebSocketUrl(), payload, { status: "sent" }, 200, true);
+  }
+
+  async getConditionList() {
+    const useMock = (this.config.get<string>("KIWOOM_MOCK") ?? "true") === "true";
+    if (useMock) {
+      const mock = {
+        trnm: "CNSRLST",
+        return_code: 0,
+        data: [{ seq: "1", name: "Mock Condition" }],
+      };
+      await this.logApi("WS", this.resolveWebSocketUrl(), { trnm: "CNSRLST" }, mock, 200, true);
+      return mock;
+    }
+    const payload = {
+      trnm: "CNSRLST",
+    };
+    return this.sendWebSocketRequest("CNSRLST", payload);
+  }
+
+  async requestConditionSearch(input: { seq: string; searchType?: string; stexTp?: string }) {
+    const useMock = (this.config.get<string>("KIWOOM_MOCK") ?? "true") === "true";
+    if (useMock) {
+      const mock = {
+        trnm: "CNSRREQ",
+        seq: input.seq,
+        return_code: 0,
+        data: [{ jmcode: "005930" }, { jmcode: "000660" }],
+      };
+      await this.logApi("WS", this.resolveWebSocketUrl(), { trnm: "CNSRREQ", seq: input.seq }, mock, 200, true);
+      return mock;
+    }
+    const payload = {
+      trnm: "CNSRREQ",
+      seq: String(input.seq),
+      search_type: input.searchType ?? "0",
+      stex_tp: input.stexTp ?? "K",
+    };
+    const response = await this.sendWebSocketRequest("CNSRREQ", payload);
+    const symbols = this.extractConditionSymbols(response);
+    if (payload.search_type === "1" && symbols.length > 0) {
+      await this.registerRealtimeQuotes(symbols, ["0B", "0D"]);
+    }
+    return { ...response, symbols };
   }
 
   getRealtimePrice(symbol: string) {
@@ -609,7 +658,23 @@ export class KiwoomService {
     } catch {
       return;
     }
-    if (!payload || payload.trnm !== "REAL") {
+    if (!payload) {
+      return;
+    }
+
+    if (payload.trnm !== "REAL") {
+      const key = String(payload.trnm ?? "");
+      const queue = this.pendingWsRequests.get(key);
+      if (queue && queue.length > 0) {
+        const entry = queue.shift();
+        if (entry) {
+          clearTimeout(entry.timer);
+          entry.resolve(payload);
+        }
+        if (queue.length === 0) {
+          this.pendingWsRequests.delete(key);
+        }
+      }
       return;
     }
 
@@ -623,6 +688,18 @@ export class KiwoomService {
       }
 
       const type = String(entry.type ?? "");
+      const conditionFlag = values["843"];
+      if (conditionFlag === "I" || conditionFlag === "D") {
+        this.kiwoomEvents.emit({
+          type: "condition",
+          data: {
+            action: conditionFlag,
+            symbol,
+            time: values["20"] ?? null,
+            raw: entry,
+          },
+        });
+      }
       if (type === "0D") {
         const bidTotal = this.toNumber(values["6065"] ?? values["bid_total"] ?? values["total_bid"]);
         const askTotal = this.toNumber(values["6064"] ?? values["ask_total"] ?? values["total_ask"]);
@@ -657,6 +734,44 @@ export class KiwoomService {
       return "";
     }
     return value.replace(/^A/, "").trim();
+  }
+
+  private extractConditionSymbols(payload: Record<string, unknown>) {
+    const list = (payload.data ?? []) as Array<Record<string, unknown>>;
+    const symbols = new Set<string>();
+    for (const entry of list) {
+      const raw = String(entry.jmcode ?? entry.code ?? entry.symbol ?? "");
+      const normalized = this.normalizeSymbol(raw);
+      if (normalized) {
+        symbols.add(normalized);
+      }
+    }
+    return Array.from(symbols);
+  }
+
+  private async sendWebSocketRequest(
+    trnm: string,
+    payload: Record<string, unknown>,
+    timeoutMs: number = 10_000,
+  ) {
+    const ws = await this.ensureWebSocket();
+    await this.logApi("WS", this.resolveWebSocketUrl(), payload, { status: "sent" }, 200, true);
+    return new Promise<Record<string, unknown>>((resolve, reject) => {
+      const timer = setTimeout(() => {
+        const queue = this.pendingWsRequests.get(trnm) ?? [];
+        this.pendingWsRequests.set(
+          trnm,
+          queue.filter((entry) => entry.resolve !== resolve),
+        );
+        reject(new Error(`Kiwoom websocket request timeout for ${trnm}`));
+      }, timeoutMs);
+
+      const queue = this.pendingWsRequests.get(trnm) ?? [];
+      queue.push({ resolve, reject, timer });
+      this.pendingWsRequests.set(trnm, queue);
+
+      ws.send(JSON.stringify(payload));
+    });
   }
 
   private appendPriceHistory(symbol: string, price: number) {
