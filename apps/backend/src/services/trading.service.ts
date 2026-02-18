@@ -6,7 +6,9 @@ import { Holding, PortfolioSnapshot, PortfolioState, TradeLog } from "../entitie
 import { TradeDecision } from "../types";
 import { GeminiService } from "./gemini.service";
 import { KiwoomService } from "./kiwoom.service";
+import { NewsService } from "./news.service";
 import { StrategyService } from "./strategy.service";
+import { UniverseService } from "./universe.service";
 
 @Injectable()
 export class TradingService {
@@ -22,7 +24,9 @@ export class TradingService {
     private readonly portfolioSnapshotRepository: Repository<PortfolioSnapshot>,
     @Inject(GeminiService) private readonly gemini: GeminiService,
     @Inject(KiwoomService) private readonly kiwoom: KiwoomService,
+    @Inject(NewsService) private readonly newsService: NewsService,
     @Inject(StrategyService) private readonly strategyService: StrategyService,
+    @Inject(UniverseService) private readonly universeService: UniverseService,
   ) {}
 
   async ensurePortfolioState() {
@@ -46,8 +50,11 @@ export class TradingService {
     quotes: Array<{ symbol: string; price: number; changeRate: number; volume: number }>;
     holdings: Holding[];
   }): Promise<TradeDecision[]> {
-    const strategy = this.strategyService.getCurrentStrategy();
+    const strategy = await this.strategyService.getCurrentStrategy();
     const fallback = this.ruleBasedDecisions(context.quotes, context.holdings);
+    const latestNews = await this.newsService.getLatestNews(20);
+    const newsSignals = await this.buildNewsSignals(context.quotes, latestNews);
+    const realtimeSignals = context.quotes.map((quote) => this.kiwoom.getRealtimeSignal(quote.symbol));
 
     const prompt = [
       "Return JSON array only.",
@@ -56,50 +63,183 @@ export class TradingService {
       `Strategy markdown:\n${strategy}`,
       `Holdings:${JSON.stringify(context.holdings)}`,
       `Quotes:${JSON.stringify(context.quotes)}`,
+      `Latest news:${JSON.stringify(latestNews)}`,
+      `News signals:${JSON.stringify(newsSignals)}`,
+      `Realtime signals:${JSON.stringify(realtimeSignals)}`,
     ].join("\n\n");
 
     const ai = await this.gemini.generateJson<TradeDecision[]>(prompt, fallback);
     return ai.filter((item) => item.side !== "HOLD" && item.quantity > 0);
   }
 
+  private async buildNewsSignals(
+    quotes: Array<{ symbol: string; price: number; changeRate: number; volume: number }>,
+    latestNews: Array<{ title?: string | null; summary?: string | null; source?: string | null; publishedAt?: Date | null }>,
+  ) {
+    const entries = await this.universeService.getEntries();
+    const entryMap = new Map(entries.map((entry) => [entry.symbol, entry]));
+    const normalizedArticles = latestNews.map((article) => ({
+      title: article.title ?? "",
+      summary: article.summary ?? "",
+      source: article.source ?? "",
+    }));
+
+    return quotes.map((quote) => {
+      const entry = entryMap.get(quote.symbol);
+      const name = entry?.name ?? "";
+      const symbol = quote.symbol;
+      let mentions = 0;
+      const matchedTitles: string[] = [];
+
+      for (const article of normalizedArticles) {
+        const text = `${article.title} ${article.summary}`.toLowerCase();
+        const symbolHit = symbol && text.includes(symbol.toLowerCase());
+        const nameHit = name && text.includes(name.toLowerCase());
+        if (symbolHit || nameHit) {
+          mentions += 1;
+          if (article.title) {
+            matchedTitles.push(article.title);
+          }
+        }
+      }
+
+      return {
+        symbol,
+        name: name || undefined,
+        mentions,
+        sampleTitles: matchedTitles.slice(0, 3),
+      };
+    });
+  }
+
   async executeDecisions(decisions: TradeDecision[], quoteMap: Record<string, number>) {
+    const executed: Array<{
+      symbol: string;
+      side: "BUY" | "SELL";
+      quantity: number;
+      price: number;
+      totalAmount: number;
+      reason?: string;
+      status: "EXECUTED";
+    }> = [];
+    const skipped: Array<{
+      symbol: string;
+      side: "BUY" | "SELL";
+      quantity: number;
+      price: number;
+      totalAmount: number;
+      reason?: string;
+      status: "SKIPPED_INSUFFICIENT_CASH" | "SKIPPED_INSUFFICIENT_HOLDING" | "SKIPPED_DUPLICATE_SYMBOL";
+    }> = [];
+
     if (decisions.length === 0) {
       await this.snapshotAsset(quoteMap);
-      return;
+      const holdingsValue = await this.calculateHoldingsValue(quoteMap);
+      const state = await this.ensurePortfolioState();
+      return {
+        executed,
+        skipped,
+        cash: state.cash,
+        holdingsValue,
+        totalAsset: state.cash + holdingsValue,
+      };
     }
 
     const state = await this.ensurePortfolioState();
     const virtualMode = state.virtualMode;
+    const processedSymbols = new Set<string>();
 
     for (const decision of decisions) {
+      if (decision.side === "HOLD") {
+        continue;
+      }
       const price = quoteMap[decision.symbol] ?? 0;
       const totalAmount = decision.quantity * price;
+      if (processedSymbols.has(decision.symbol)) {
+        this.logger.warn(`Skip ${decision.side} ${decision.symbol}: duplicate symbol in same cycle`);
+        skipped.push({
+          symbol: decision.symbol,
+          side: decision.side,
+          quantity: decision.quantity,
+          price,
+          totalAmount,
+          reason: decision.reason,
+          status: "SKIPPED_DUPLICATE_SYMBOL",
+        });
+        continue;
+      }
+      processedSymbols.add(decision.symbol);
 
       if (decision.side === "BUY") {
-        if (state.cash < totalAmount) {
-          this.logger.warn(`Skip BUY ${decision.symbol}: insufficient cash`);
+        if (price <= 0) {
+          this.logger.warn(`Skip BUY ${decision.symbol}: invalid price=${price}`);
+          skipped.push({
+            symbol: decision.symbol,
+            side: "BUY",
+            quantity: decision.quantity,
+            price,
+            totalAmount,
+            reason: decision.reason,
+            status: "SKIPPED_INSUFFICIENT_CASH",
+          });
           continue;
+        }
+
+        const maxAffordable = Math.floor(state.cash / price);
+        if (maxAffordable <= 0) {
+          this.logger.warn(`Skip BUY ${decision.symbol}: insufficient cash`);
+          skipped.push({
+            symbol: decision.symbol,
+            side: "BUY",
+            quantity: decision.quantity,
+            price,
+            totalAmount,
+            reason: decision.reason,
+            status: "SKIPPED_INSUFFICIENT_CASH",
+          });
+          continue;
+        }
+
+        const finalQuantity = Math.min(decision.quantity, maxAffordable);
+        const finalTotal = finalQuantity * price;
+        if (finalQuantity < decision.quantity) {
+          this.logger.warn(
+            `Reduce BUY ${decision.symbol}: requested=${decision.quantity}, affordable=${finalQuantity}`,
+          );
         }
 
         if (!virtualMode) {
           await this.kiwoom.placeOrder({
             symbol: decision.symbol,
             side: "BUY",
-            quantity: decision.quantity,
+            quantity: finalQuantity,
             price,
           });
         }
 
-        state.cash -= totalAmount;
-        await this.upsertHoldingBuy(decision.symbol, decision.quantity, price);
+        state.cash -= finalTotal;
+        await this.upsertHoldingBuy(decision.symbol, finalQuantity, price);
+        const adjustedReason =
+          finalQuantity < decision.quantity
+            ? `${decision.reason ?? ""} (auto-resized from ${decision.quantity} to ${finalQuantity})`.trim()
+            : decision.reason;
         await this.tradeLogRepository.save({
           symbol: decision.symbol,
           side: "BUY",
-          quantity: decision.quantity,
+          quantity: finalQuantity,
           price,
-          totalAmount,
-          reason: decision.reason,
+          totalAmount: finalTotal,
+          reason: adjustedReason,
           mode: virtualMode ? "VIRTUAL" : "REAL",
+        });
+        executed.push({
+          symbol: decision.symbol,
+          side: "BUY",
+          quantity: finalQuantity,
+          price,
+          totalAmount: finalTotal,
+          reason: adjustedReason,
+          status: "EXECUTED",
         });
       }
 
@@ -107,6 +247,15 @@ export class TradingService {
         const holding = await this.holdingRepository.findOne({ where: { symbol: decision.symbol } });
         if (!holding || holding.quantity < decision.quantity) {
           this.logger.warn(`Skip SELL ${decision.symbol}: insufficient holding`);
+          skipped.push({
+            symbol: decision.symbol,
+            side: "SELL",
+            quantity: decision.quantity,
+            price,
+            totalAmount,
+            reason: decision.reason,
+            status: "SKIPPED_INSUFFICIENT_HOLDING",
+          });
           continue;
         }
 
@@ -132,12 +281,29 @@ export class TradingService {
           mode: virtualMode ? "VIRTUAL" : "REAL",
           realizedPnl: pnl,
         });
+        executed.push({
+          symbol: decision.symbol,
+          side: "SELL",
+          quantity: decision.quantity,
+          price,
+          totalAmount,
+          reason: decision.reason,
+          status: "EXECUTED",
+        });
       }
     }
 
     await this.portfolioStateRepository.save(state);
 
     await this.snapshotAsset(quoteMap);
+    const holdingsValue = await this.calculateHoldingsValue(quoteMap);
+    return {
+      executed,
+      skipped,
+      cash: state.cash,
+      holdingsValue,
+      totalAsset: state.cash + holdingsValue,
+    };
   }
 
   async snapshotAsset(quoteMap: Record<string, number>) {
@@ -231,5 +397,13 @@ export class TradingService {
 
     holding.quantity = remaining;
     await this.holdingRepository.save(holding);
+  }
+
+  private async calculateHoldingsValue(quoteMap: Record<string, number>) {
+    const holdings = await this.holdingRepository.find();
+    return holdings.reduce((acc, holding) => {
+      const price = quoteMap[holding.symbol] ?? holding.avgPrice;
+      return acc + price * holding.quantity;
+    }, 0);
   }
 }

@@ -20,6 +20,8 @@ import { LineChart } from "@mantine/charts";
 import { buildQuery, fetchJson } from "@/lib/api";
 import { formatSymbolLabel } from "@/lib/symbols";
 import { Pager } from "@/components/pager";
+import { FilterBar } from "@/components/filters/filter-bar";
+import { TimeRangeFilter } from "@/components/filters/time-range-filter";
 
 type Snapshot = {
   id: string;
@@ -32,6 +34,7 @@ type Snapshot = {
 type Holding = {
   id: string;
   symbol: string;
+  name?: string | null;
   quantity: number;
   avgPrice: number;
 };
@@ -54,7 +57,10 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
   const page = Math.max(1, Number(params.page ?? "1"));
   const pageSize = Math.max(1, Number(params.pageSize ?? "20"));
 
-  const data = await fetchJson<AssetResponse>(`/api/monitoring/assets${buildQuery(page, pageSize)}`);
+  const query = new URLSearchParams(buildQuery(page, pageSize).replace("?", ""));
+  if (params.from) query.set("from", params.from);
+  if (params.to) query.set("to", params.to);
+  const data = await fetchJson<AssetResponse>(`/api/monitoring/assets?${query.toString()}`);
 
   const chartData = [...data.timeline.items].reverse().map((item) => ({
     time: new Date(item.createdAt).toLocaleString(),
@@ -68,6 +74,9 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
       <Title order={3} mb="md">
         Asset Monitoring
       </Title>
+      <FilterBar>
+        <TimeRangeFilter />
+      </FilterBar>
       <Card withBorder radius="md" mb="md" style={{ background: "var(--app-surface)" }}>
         <LineChart
           h={220}
@@ -82,36 +91,36 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
         />
       </Card>
 
-      <SimpleGrid cols={{ base: 1, md: 3 }} mb="md">
-        <Card withBorder radius="md" p="lg" style={{ background: "var(--app-surface)" }}>
-          <Text c="dimmed" size="xs" tt="uppercase" fw={700}>
-            Mode
-          </Text>
-          <Group mt="sm">
+      <Card withBorder radius="md" p="lg" mb="md" style={{ background: "var(--app-surface)" }}>
+        <Group justify="space-between" wrap="nowrap">
+          <Group gap="sm" wrap="nowrap">
+            <Text c="dimmed" size="xs" tt="uppercase" fw={700}>
+              Mode
+            </Text>
             <Badge size="lg" color={data.summary.virtualMode ? "blue" : "grape"} variant="light">
               {data.summary.virtualMode ? "VIRTUAL" : "REAL"}
             </Badge>
           </Group>
-        </Card>
 
-        <Card withBorder radius="md" p="lg" style={{ background: "var(--app-surface)" }}>
-          <Text c="dimmed" size="xs" tt="uppercase" fw={700}>
-            Initial Capital
-          </Text>
-          <Text mt="sm" fw={700} size="xl">
-            <NumberFormatter value={data.summary.initialCapital} thousandSeparator suffix=" KRW" />
-          </Text>
-        </Card>
+          <Group gap="sm" wrap="nowrap">
+            <Text c="dimmed" size="xs" tt="uppercase" fw={700}>
+              Initial Capital
+            </Text>
+            <Text fw={700} size="lg">
+              <NumberFormatter value={data.summary.initialCapital} thousandSeparator suffix=" KRW" />
+            </Text>
+          </Group>
 
-        <Card withBorder radius="md" p="lg" style={{ background: "var(--app-surface)" }}>
-          <Text c="dimmed" size="xs" tt="uppercase" fw={700}>
-            Cash
-          </Text>
-          <Text mt="sm" fw={700} size="xl" c="teal.7">
-            <NumberFormatter value={data.summary.cash} thousandSeparator suffix=" KRW" />
-          </Text>
-        </Card>
-      </SimpleGrid>
+          <Group gap="sm" wrap="nowrap">
+            <Text c="dimmed" size="xs" tt="uppercase" fw={700}>
+              Cash
+            </Text>
+            <Text fw={700} size="lg" c="teal.7">
+              <NumberFormatter value={data.summary.cash} thousandSeparator suffix=" KRW" />
+            </Text>
+          </Group>
+        </Group>
+      </Card>
 
       <Box style={{ flex: 1, minHeight: 0 }}>
         <ScrollArea h="100%">
@@ -119,6 +128,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
             <TableThead>
               <TableTr>
                 <TableTh>Symbol</TableTh>
+                <TableTh>Name</TableTh>
                 <TableTh>Quantity</TableTh>
                 <TableTh>Avg Price</TableTh>
                 <TableTh>Current Value</TableTh>
@@ -128,6 +138,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
               {data.summary.holdings.map((holding) => (
                 <TableTr key={holding.id}>
                   <TableTd>{formatSymbolLabel(holding.symbol)}</TableTd>
+                  <TableTd>{holding.name ?? "-"}</TableTd>
                   <TableTd>{holding.quantity}</TableTd>
                   <TableTd>
                     <NumberFormatter value={holding.avgPrice} thousandSeparator suffix=" KRW" />

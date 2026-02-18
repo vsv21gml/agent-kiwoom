@@ -8,9 +8,11 @@ import { GeminiCallLog } from "../entities";
 export class GeminiService {
   private readonly logger = new Logger(GeminiService.name);
   private readonly defaultModel = "gemini-3.0-flash";
-  private readonly fallbackModels = ["gemini-2.0-flash", "gemini-1.5-flash"];
+  private readonly fallbackModels = ["gemini-2.5-flash", "gemini-2.5-flash-lite", "gemini-1.5-flash"];
   private readonly modelUnavailableUntil = new Map<string, number>();
   private quotaBlockedUntil = 0;
+  private availableModelsCache: { models: string[]; fetchedAt: number } | null = null;
+  private readonly availableModelsTtlMs = 5 * 60 * 1000;
 
   constructor(
     @Inject(ConfigService) private readonly config: ConfigService,
@@ -36,6 +38,10 @@ export class GeminiService {
   }
 
   async generateText(prompt: string): Promise<string> {
+    return this.generateTextWithModel(prompt, undefined);
+  }
+
+  async generateTextWithModel(prompt: string, modelOverride?: string): Promise<string> {
     if (Date.now() < this.quotaBlockedUntil) {
       return "";
     }
@@ -46,10 +52,28 @@ export class GeminiService {
       return "";
     }
 
-    const configuredModel = this.config.get<string>("GEMINI_MODEL") ?? this.defaultModel;
-    const modelsToTry = [configuredModel, ...this.fallbackModels.filter((model) => model !== configuredModel)].filter(
-      (model) => Date.now() >= (this.modelUnavailableUntil.get(model) ?? 0),
-    );
+    const configuredModel = modelOverride ?? this.config.get<string>("GEMINI_MODEL") ?? this.defaultModel;
+    const configuredFallbacks = (this.config.get<string>("GEMINI_MODEL_FALLBACKS") ?? "")
+      .split(",")
+      .map((model) => model.trim())
+      .filter(Boolean);
+    const preferredModels = [configuredModel, ...configuredFallbacks, ...this.fallbackModels]
+      .filter((model, index, array) => array.indexOf(model) === index);
+
+    const availableModels = await this.getAvailableModels(apiKey);
+    let modelsToTry = preferredModels;
+    if (availableModels.length > 0) {
+      const filtered = preferredModels.filter((model) => availableModels.includes(model));
+      if (filtered.length > 0) {
+        modelsToTry = filtered;
+      } else {
+        this.logger.warn(
+          `Gemini model list does not include any preferred models. Using configured list anyway. preferred=${preferredModels.join(",")}`,
+        );
+      }
+    }
+
+    modelsToTry = modelsToTry.filter((model) => Date.now() >= (this.modelUnavailableUntil.get(model) ?? 0));
 
     for (const model of modelsToTry) {
       const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
@@ -85,8 +109,9 @@ export class GeminiService {
           continue;
         }
         if (response.status === 429) {
-          this.quotaBlockedUntil = Date.now() + 15 * 60 * 1000;
-          this.logger.warn("Gemini quota exceeded (429). Gemini calls are paused for 15 minutes.");
+          this.modelUnavailableUntil.set(model, Date.now() + 2 * 60 * 1000);
+          this.logger.warn(`Gemini 429 on model=${model}. Trying fallback model.`);
+          continue;
         }
         return "";
       }
@@ -119,7 +144,46 @@ export class GeminiService {
       this.quotaBlockedUntil = 0;
       return outputText;
     }
+
+    if (modelsToTry.length > 0) {
+      this.quotaBlockedUntil = Date.now() + 2 * 60 * 1000;
+      this.logger.warn("All Gemini models failed or are rate-limited. Pausing Gemini calls for 2 minutes.");
+    }
     return "";
+  }
+
+  private async getAvailableModels(apiKey: string): Promise<string[]> {
+    if (this.availableModelsCache && Date.now() - this.availableModelsCache.fetchedAt < this.availableModelsTtlMs) {
+      return this.availableModelsCache.models;
+    }
+
+    try {
+      const endpoint = `https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`;
+      const response = await fetch(endpoint, { method: "GET" });
+      if (!response.ok) {
+        this.logger.warn(`Failed to list Gemini models: status=${response.status}`);
+        return [];
+      }
+
+      const payload = (await response.json()) as {
+        models?: Array<{ name?: string; supportedGenerationMethods?: string[] }>;
+      };
+
+      const models =
+        payload.models
+          ?.filter((model) => model.supportedGenerationMethods?.includes("generateContent"))
+          .map((model) => model.name?.replace(/^models\//, ""))
+          .filter((name): name is string => Boolean(name)) ?? [];
+
+      this.availableModelsCache = { models, fetchedAt: Date.now() };
+      if (models.length > 0) {
+        this.logger.log(`Gemini available models: ${models.join(",")}`);
+      }
+      return models;
+    } catch (error) {
+      this.logger.warn(`Failed to list Gemini models: ${String(error)}`);
+      return [];
+    }
   }
 
   private async logGeminiCall(input: {

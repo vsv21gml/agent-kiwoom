@@ -11,7 +11,14 @@ type MonitorState = {
 
 export const useMonitorStore = create<MonitorState>((set) => ({
   pageSize: 20,
-  autoRefresh: false,
+  autoRefresh: typeof window !== "undefined" && localStorage.getItem("ui.live.autoRefresh") === "true",
   setPageSize: (pageSize) => set({ pageSize }),
-  toggleRefresh: () => set((state) => ({ autoRefresh: !state.autoRefresh })),
+  toggleRefresh: () =>
+    set((state) => {
+      const next = !state.autoRefresh;
+      if (typeof window !== "undefined") {
+        localStorage.setItem("ui.live.autoRefresh", String(next));
+      }
+      return { autoRefresh: next };
+    }),
 }));

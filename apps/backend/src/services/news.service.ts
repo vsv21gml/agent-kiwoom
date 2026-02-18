@@ -89,7 +89,7 @@ export class NewsService {
       return;
     }
 
-    const current = this.strategyService.getCurrentStrategy();
+    const current = await this.strategyService.getCurrentStrategy();
     const prompt = [
       "You are an equity trading strategy updater.",
       "Update the strategy markdown for short-term trading using latest news.",
@@ -101,9 +101,18 @@ export class NewsService {
       JSON.stringify(latestNews),
     ].join("\n\n");
 
-    const updated = await this.gemini.generateText(prompt);
-    if (updated.trim().length > 0) {
+    const proModel = this.config.get<string>("GEMINI_PRO_MODEL") ?? "gemini-1.5-pro";
+    const updated = await this.gemini.generateTextWithModel(prompt, proModel);
+    if (updated.trim().length > 0 && updated.trim() !== current.trim()) {
       await this.strategyService.updateStrategy(updated.trim(), "news-refinement");
     }
+  }
+
+  async getLatestNews(limit = 20) {
+    return this.newsArticleRepository.find({
+      take: limit,
+      order: { createdAt: "DESC" },
+      select: { title: true, summary: true, source: true, publishedAt: true },
+    });
   }
 }

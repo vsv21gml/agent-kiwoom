@@ -1,6 +1,7 @@
 import {
   Anchor,
   Box,
+  Group,
   ScrollArea,
   Stack,
   Table,
@@ -14,6 +15,9 @@ import {
 } from "@mantine/core";
 import { buildQuery, fetchJson } from "@/lib/api";
 import { Pager } from "@/components/pager";
+import { FilterBar } from "@/components/filters/filter-bar";
+import { TimeRangeFilter } from "@/components/filters/time-range-filter";
+import { NewsToolbar } from "@/components/news-toolbar";
 
 type NewsLog = {
   id: string;
@@ -30,13 +34,25 @@ export default async function NewsLogsPage({ searchParams }: { searchParams: Pro
   const page = Math.max(1, Number(params.page ?? "1"));
   const pageSize = Math.max(1, Number(params.pageSize ?? "20"));
 
-  const data = await fetchJson<{ items: NewsLog[]; total: number }>(`/api/monitoring/news${buildQuery(page, pageSize)}`);
+  const query = new URLSearchParams(buildQuery(page, pageSize).replace("?", ""));
+  if (params.from) query.set("from", params.from);
+  if (params.to) query.set("to", params.to);
+  const data = await fetchJson<{ items: NewsLog[]; total: number }>(`/api/monitoring/news?${query.toString()}`);
 
   return (
     <Stack h="100%" gap="md">
-      <Title order={3} mb="md">
-        News Logs
-      </Title>
+      <Group justify="space-between" align="flex-end">
+        <Group gap="sm" align="flex-end">
+          <Title order={3}>News</Title>
+          <Text size="sm" c="dimmed">
+            Run news scrape immediately.
+          </Text>
+        </Group>
+        <NewsToolbar />
+      </Group>
+      <FilterBar>
+        <TimeRangeFilter />
+      </FilterBar>
       <Box style={{ flex: 1, minHeight: 0 }}>
         <ScrollArea h="100%">
           <Table striped highlightOnHover>

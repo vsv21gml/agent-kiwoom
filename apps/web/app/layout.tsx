@@ -1,12 +1,13 @@
 import "./globals.css";
 import "@mantine/core/styles.css";
 import "@mantine/charts/styles.css";
+import "@mantine/dates/styles.css";
 import { ColorSchemeScript, MantineProvider } from "@mantine/core";
 import { MonitorShell } from "@/components/monitor-shell";
 
 export const metadata = {
-  title: "Agent Kiwoom Monitor",
-  description: "Kiwoom + Gemini trading monitor",
+  title: "Stock Agent",
+  description: "Stock Agent",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
