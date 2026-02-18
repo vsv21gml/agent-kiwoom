@@ -51,6 +51,8 @@ export class TradingService {
     holdings: Holding[];
   }): Promise<TradeDecision[]> {
     const strategy = await this.strategyService.getCurrentStrategy();
+    const state = await this.ensurePortfolioState();
+    const policy = await this.strategyService.getTradingPolicy();
     const fallback = this.ruleBasedDecisions(context.quotes, context.holdings);
     const latestNews = await this.newsService.getLatestNews(20);
     const newsSignals = await this.buildNewsSignals(context.quotes, latestNews);
@@ -60,6 +62,8 @@ export class TradingService {
       "Return JSON array only.",
       "Each item: {symbol, side(BUY|SELL|HOLD), quantity, reason, confidence}",
       "Use short-term strategy and current holdings.",
+      `Cash available: ${state.cash}`,
+      `Trading policy: ${JSON.stringify(policy)}`,
       `Strategy markdown:\n${strategy}`,
       `Holdings:${JSON.stringify(context.holdings)}`,
       `Quotes:${JSON.stringify(context.quotes)}`,
@@ -129,7 +133,11 @@ export class TradingService {
       price: number;
       totalAmount: number;
       reason?: string;
-      status: "SKIPPED_INSUFFICIENT_CASH" | "SKIPPED_INSUFFICIENT_HOLDING" | "SKIPPED_DUPLICATE_SYMBOL";
+      status:
+        | "SKIPPED_INSUFFICIENT_CASH"
+        | "SKIPPED_INSUFFICIENT_HOLDING"
+        | "SKIPPED_DUPLICATE_SYMBOL"
+        | "SKIPPED_POLICY";
     }> = [];
 
     if (decisions.length === 0) {
@@ -146,6 +154,11 @@ export class TradingService {
     }
 
     const state = await this.ensurePortfolioState();
+    const policy = await this.strategyService.getTradingPolicy();
+    const holdingsValueForSizing = await this.calculateHoldingsValue(quoteMap);
+    const totalAssetForSizing = state.cash + holdingsValueForSizing;
+    const maxPositionValue =
+      policy.positionSizePct > 0 ? (totalAssetForSizing * policy.positionSizePct) / 100 : 0;
     const virtualMode = state.virtualMode;
     const processedSymbols = new Set<string>();
 
@@ -153,7 +166,7 @@ export class TradingService {
       if (decision.side === "HOLD") {
         continue;
       }
-      const price = quoteMap[decision.symbol] ?? 0;
+      const price = this.resolveExecutionPrice(decision.symbol, quoteMap);
       const totalAmount = decision.quantity * price;
       if (processedSymbols.has(decision.symbol)) {
         this.logger.warn(`Skip ${decision.side} ${decision.symbol}: duplicate symbol in same cycle`);
@@ -186,6 +199,7 @@ export class TradingService {
         }
 
         const maxAffordable = Math.floor(state.cash / price);
+        const maxByPolicy = maxPositionValue > 0 ? Math.floor(maxPositionValue / price) : maxAffordable;
         if (maxAffordable <= 0) {
           this.logger.warn(`Skip BUY ${decision.symbol}: insufficient cash`);
           skipped.push({
@@ -200,7 +214,20 @@ export class TradingService {
           continue;
         }
 
-        const finalQuantity = Math.min(decision.quantity, maxAffordable);
+        const finalQuantity = Math.min(decision.quantity, maxAffordable, maxByPolicy);
+        if (finalQuantity <= 0) {
+          this.logger.warn(`Skip BUY ${decision.symbol}: position size policy limit`);
+          skipped.push({
+            symbol: decision.symbol,
+            side: "BUY",
+            quantity: decision.quantity,
+            price,
+            totalAmount,
+            reason: `${decision.reason ?? ""} (position cap ${policy.positionSizePct}%)`.trim(),
+            status: "SKIPPED_POLICY",
+          });
+          continue;
+        }
         const finalTotal = finalQuantity * price;
         if (finalQuantity < decision.quantity) {
           this.logger.warn(
@@ -255,6 +282,23 @@ export class TradingService {
             totalAmount,
             reason: decision.reason,
             status: "SKIPPED_INSUFFICIENT_HOLDING",
+          });
+          continue;
+        }
+
+        const profitPct = holding.avgPrice > 0 ? ((price - holding.avgPrice) / holding.avgPrice) * 100 : 0;
+        if (profitPct < policy.takeProfitPct && profitPct > policy.stopLossPct) {
+          this.logger.warn(
+            `Skip SELL ${decision.symbol}: profit ${profitPct.toFixed(3)}% not beyond take/stop rules`,
+          );
+          skipped.push({
+            symbol: decision.symbol,
+            side: "SELL",
+            quantity: decision.quantity,
+            price,
+            totalAmount,
+            reason: `${decision.reason ?? ""} (policy take=${policy.takeProfitPct}%, stop=${policy.stopLossPct}%)`.trim(),
+            status: "SKIPPED_POLICY",
           });
           continue;
         }
@@ -405,5 +449,13 @@ export class TradingService {
       const price = quoteMap[holding.symbol] ?? holding.avgPrice;
       return acc + price * holding.quantity;
     }, 0);
+  }
+
+  private resolveExecutionPrice(symbol: string, quoteMap: Record<string, number>) {
+    const realtime = this.kiwoom.getRealtimePrice(symbol);
+    if (realtime?.price) {
+      return realtime.price;
+    }
+    return quoteMap[symbol] ?? 0;
   }
 }

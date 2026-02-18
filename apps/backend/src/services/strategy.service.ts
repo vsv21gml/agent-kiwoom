@@ -83,6 +83,47 @@ export class StrategyService {
     };
   }
 
+  async getTradingPolicy() {
+    const content = await this.getCurrentStrategy();
+    const defaults = {
+      takeProfitPct: 1.0,
+      stopLossPct: -1.0,
+      positionSizePct: 10,
+      minHoldMinutes: 0,
+    };
+
+    const sectionMatch = content.split(/#+\s*Trading Rules/i)[1];
+    if (!sectionMatch) {
+      return defaults;
+    }
+
+    const section = sectionMatch.split(/\n#+\s+/)[0];
+    const lines = section.split(/\r?\n/).map((line) => line.trim());
+    const parsed: Record<string, string> = {};
+
+    for (const line of lines) {
+      if (!line || line.startsWith("#") || !line.includes("=")) {
+        continue;
+      }
+      const [rawKey, ...rest] = line.split("=");
+      const key = rawKey.trim().toUpperCase();
+      const value = rest.join("=").trim();
+      parsed[key] = value;
+    }
+
+    const parseNumber = (value: string | undefined, fallback: number) => {
+      const parsedValue = Number(value);
+      return Number.isFinite(parsedValue) ? parsedValue : fallback;
+    };
+
+    return {
+      takeProfitPct: parseNumber(parsed.TAKE_PROFIT_PCT, defaults.takeProfitPct),
+      stopLossPct: parseNumber(parsed.STOP_LOSS_PCT, defaults.stopLossPct),
+      positionSizePct: parseNumber(parsed.POSITION_SIZE_PCT, defaults.positionSizePct),
+      minHoldMinutes: parseNumber(parsed.MIN_HOLD_MINUTES, defaults.minHoldMinutes),
+    };
+  }
+
   async updateStrategy(content: string, source: string) {
     const record = await this.ensureStrategyRecord();
     record.content = content;
@@ -93,8 +134,16 @@ export class StrategyService {
   private async ensureStrategyRecord() {
     const existing = await this.strategyDocumentRepository.findOne({ where: { key: "default" } });
     if (existing) {
+      let updated = false;
       if (!/Universe Selection/i.test(existing.content)) {
         existing.content = `${existing.content.trim()}\n\n${this.universeSelectionTemplate()}\n`;
+        updated = true;
+      }
+      if (!/Trading Rules/i.test(existing.content)) {
+        existing.content = `${existing.content.trim()}\n\n${this.tradingRulesTemplate()}\n`;
+        updated = true;
+      }
+      if (updated) {
         return this.strategyDocumentRepository.save(existing);
       }
       return existing;
@@ -113,6 +162,8 @@ export class StrategyService {
       "",
       "- Keep risk low and react fast.",
       "",
+      this.tradingRulesTemplate(),
+      "",
       this.universeSelectionTemplate(),
       "",
     ].join("\n");
@@ -130,6 +181,16 @@ export class StrategyService {
       "MARKETS=KOSPI,KOSDAQ",
       "INCLUDE_MANAGED=false",
       "STEX=1",
+    ].join("\n");
+  }
+
+  private tradingRulesTemplate() {
+    return [
+      "## Trading Rules",
+      "TAKE_PROFIT_PCT=1.0",
+      "STOP_LOSS_PCT=-1.0",
+      "POSITION_SIZE_PCT=10",
+      "MIN_HOLD_MINUTES=0",
     ].join("\n");
   }
 }

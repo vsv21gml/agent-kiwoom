@@ -65,9 +65,9 @@ export default async function TradesPage({ searchParams }: { searchParams: Promi
                   <TableTh>Name</TableTh>
                   <TableTh>Side</TableTh>
                   <TableTh>Qty</TableTh>
+                  <TableTh>Price</TableTh>
                   <TableTh>Total</TableTh>
-                <TableTh>Realized PnL</TableTh>
-                <TableTh>Mode</TableTh>
+                  <TableTh>Realized PnL</TableTh>
               </TableTr>
             </TableThead>
             <TableTbody>
@@ -83,6 +83,9 @@ export default async function TradesPage({ searchParams }: { searchParams: Promi
                   </TableTd>
                   <TableTd>{item.quantity}</TableTd>
                   <TableTd>
+                    <NumberFormatter value={item.price} thousandSeparator suffix=" KRW" />
+                  </TableTd>
+                  <TableTd>
                     <NumberFormatter value={item.totalAmount} thousandSeparator suffix=" KRW" />
                   </TableTd>
                   <TableTd>
@@ -90,7 +93,6 @@ export default async function TradesPage({ searchParams }: { searchParams: Promi
                       <NumberFormatter value={item.realizedPnl ?? 0} thousandSeparator suffix=" KRW" />
                     </Text>
                   </TableTd>
-                  <TableTd>{item.mode}</TableTd>
                 </TableTr>
               ))}
             </TableTbody>
