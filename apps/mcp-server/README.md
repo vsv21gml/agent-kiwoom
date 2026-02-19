@@ -42,6 +42,8 @@ POST/GET/DELETE http://localhost:8787/mcp
 - `kiwoom_condition_search_and_quotes`
 - `kiwoom_top_trading_value`
 - `kiwoom_top_trading_volume`
+- `kiwoom_intraday_ticks`
+- `kiwoom_intraday_minutes`
 - `kiwoom_realtime_register`
 - `kiwoom_realtime_signal`
 - `kiwoom_realtime_signals`

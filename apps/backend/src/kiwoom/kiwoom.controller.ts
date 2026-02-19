@@ -133,6 +133,40 @@ export class KiwoomController {
     });
   }
 
+  @Get("intraday/ticks")
+  async getIntradayTicks(
+    @Query("symbol") symbol?: string,
+    @Query("tickScope") tickScope?: string,
+    @Query("adjustedPrice") adjustedPrice?: string,
+  ) {
+    if (!symbol || !tickScope) {
+      return { error: "symbol and tickScope are required" };
+    }
+    return this.kiwoom.getIntradayTicks({
+      symbol,
+      tickScope,
+      adjustedPrice,
+    });
+  }
+
+  @Get("intraday/minutes")
+  async getIntradayMinutes(
+    @Query("symbol") symbol?: string,
+    @Query("minuteScope") minuteScope?: string,
+    @Query("baseDate") baseDate?: string,
+    @Query("adjustedPrice") adjustedPrice?: string,
+  ) {
+    if (!symbol || !minuteScope) {
+      return { error: "symbol and minuteScope are required" };
+    }
+    return this.kiwoom.getIntradayMinutes({
+      symbol,
+      minuteScope,
+      baseDate,
+      adjustedPrice,
+    });
+  }
+
   @Post("conditions/search")
   async searchCondition(@Body() body: { seq?: string; searchType?: string; stexTp?: string }) {
     if (!body.seq) {

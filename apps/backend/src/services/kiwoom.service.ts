@@ -411,6 +411,93 @@ export class KiwoomService {
     }));
   }
 
+  async getIntradayTicks(input: { symbol: string; tickScope: string; adjustedPrice?: string }) {
+    const useMock = (this.config.get<string>("KIWOOM_MOCK") ?? "true") === "true";
+    if (useMock) {
+      const mock = {
+        symbol: input.symbol,
+        ticks: [
+          {
+            price: 70000,
+            volume: 120,
+            time: new Date().toISOString(),
+            open: 70000,
+            high: 70100,
+            low: 69900,
+          },
+        ],
+        source: "mock",
+      };
+      await this.logApi("GET", `/mock/intraday-ticks/${input.symbol}`, input, mock, 200, true);
+      return mock;
+    }
+
+    const body = {
+      stk_cd: input.symbol,
+      tic_scope: input.tickScope,
+      upd_stkpc_tp: input.adjustedPrice ?? "1",
+    };
+    const { payload } = await this.postChartInfo("ka10079", body);
+    const list = (payload.stk_tic_chart_qry ?? payload.list ?? payload.items ?? []) as Array<Record<string, unknown>>;
+    return {
+      symbol: String(payload.stk_cd ?? input.symbol),
+      ticks: list.map((row) => ({
+        price: Math.abs(this.toNumber(row.cur_prc ?? row.price ?? 0)),
+        volume: this.toNumber(row.trde_qty ?? row.volume ?? 0),
+        time: String(row.cntr_tm ?? row.time ?? ""),
+        open: Math.abs(this.toNumber(row.open_pric ?? row.open ?? 0)),
+        high: Math.abs(this.toNumber(row.high_pric ?? row.high ?? 0)),
+        low: Math.abs(this.toNumber(row.low_pric ?? row.low ?? 0)),
+        change: this.toNumber(row.pred_pre ?? row.change ?? 0),
+        changeSign: String(row.pred_pre_sig ?? row.change_sign ?? ""),
+      })),
+    };
+  }
+
+  async getIntradayMinutes(input: { symbol: string; minuteScope: string; baseDate?: string; adjustedPrice?: string }) {
+    const useMock = (this.config.get<string>("KIWOOM_MOCK") ?? "true") === "true";
+    if (useMock) {
+      const mock = {
+        symbol: input.symbol,
+        minutes: [
+          {
+            price: 70000,
+            volume: 2400,
+            time: new Date().toISOString(),
+            open: 70000,
+            high: 70100,
+            low: 69900,
+          },
+        ],
+        source: "mock",
+      };
+      await this.logApi("GET", `/mock/intraday-minutes/${input.symbol}`, input, mock, 200, true);
+      return mock;
+    }
+
+    const body = {
+      stk_cd: input.symbol,
+      tic_scope: input.minuteScope,
+      upd_stkpc_tp: input.adjustedPrice ?? "1",
+      base_dt: input.baseDate ?? "",
+    };
+    const { payload } = await this.postChartInfo("ka10080", body);
+    const list = (payload.stk_min_pole_chart_qry ?? payload.list ?? payload.items ?? []) as Array<Record<string, unknown>>;
+    return {
+      symbol: String(payload.stk_cd ?? input.symbol),
+      minutes: list.map((row) => ({
+        price: Math.abs(this.toNumber(row.cur_prc ?? row.price ?? 0)),
+        volume: this.toNumber(row.trde_qty ?? row.volume ?? 0),
+        time: String(row.cntr_tm ?? row.time ?? ""),
+        open: Math.abs(this.toNumber(row.open_pric ?? row.open ?? 0)),
+        high: Math.abs(this.toNumber(row.high_pric ?? row.high ?? 0)),
+        low: Math.abs(this.toNumber(row.low_pric ?? row.low ?? 0)),
+        change: this.toNumber(row.pred_pre ?? row.change ?? 0),
+        changeSign: String(row.pred_pre_sig ?? row.change_sign ?? ""),
+      })),
+    };
+  }
+
   async placeOrder(input: { symbol: string; side: "BUY" | "SELL"; quantity: number; price: number }) {
     const useMock = (this.config.get<string>("KIWOOM_MOCK") ?? "true") === "true";
     if (useMock) {
@@ -521,6 +608,47 @@ export class KiwoomService {
     const baseUrl = this.config.get<string>("KIWOOM_BASE_URL") ?? "";
     const accessToken = await this.getAccessToken();
     const endpoint = `${baseUrl}/api/dostk/rkinfo`;
+    const headers: Record<string, string> = {
+      "Content-Type": "application/json;charset=UTF-8",
+      authorization: `Bearer ${accessToken}`,
+      "api-id": apiId,
+    };
+    if (contYn) {
+      headers["cont-yn"] = contYn;
+    }
+    if (nextKey) {
+      headers["next-key"] = nextKey;
+    }
+
+    const response = await this.rateLimitedFetch(endpoint, {
+      method: "POST",
+      headers,
+      body: JSON.stringify(body),
+    });
+
+    const payload = (await response.json().catch(() => ({}))) as Record<string, unknown>;
+    const success = response.ok && Number(payload.return_code ?? 0) === 0;
+    await this.logApi("POST", endpoint, body, payload, response.status, success);
+
+    if (!response.ok) {
+      throw new Error(`Kiwoom request failed: ${response.status}`);
+    }
+    if (Number(payload.return_code ?? 0) !== 0) {
+      throw new Error(`Kiwoom return_code failed: ${String(payload.return_msg ?? payload.return_code)}`);
+    }
+
+    return { payload, response };
+  }
+
+  private async postChartInfo(
+    apiId: string,
+    body: Record<string, unknown>,
+    contYn?: string,
+    nextKey?: string,
+  ): Promise<{ payload: Record<string, unknown>; response: Response }> {
+    const baseUrl = this.config.get<string>("KIWOOM_BASE_URL") ?? "";
+    const accessToken = await this.getAccessToken();
+    const endpoint = `${baseUrl}/api/dostk/chart`;
     const headers: Record<string, string> = {
       "Content-Type": "application/json;charset=UTF-8",
       authorization: `Bearer ${accessToken}`,

@@ -218,6 +218,54 @@ const createServer = () => {
   );
 
   server.registerTool(
+  "kiwoom_intraday_ticks",
+  {
+    title: "Kiwoom Intraday Ticks",
+    description: "Fetch intraday tick chart data (ka10079).",
+    inputSchema: {
+      symbol: z.string().describe("Stock symbol"),
+      tickScope: z.string().describe("Tick scope: 1,3,5,10,30"),
+      adjustedPrice: z.string().optional().describe("Adjusted price flag: 0 or 1"),
+    },
+  },
+  async ({ symbol, tickScope, adjustedPrice }) => {
+    const query = new URLSearchParams();
+    query.set("symbol", symbol);
+    query.set("tickScope", tickScope);
+    if (adjustedPrice) query.set("adjustedPrice", adjustedPrice);
+    const data = await fetchJson(`/api/kiwoom/intraday/ticks?${query.toString()}`);
+    return {
+      content: [{ type: "text", text: JSON.stringify(data, null, 2) }],
+    };
+  },
+  );
+
+  server.registerTool(
+  "kiwoom_intraday_minutes",
+  {
+    title: "Kiwoom Intraday Minutes",
+    description: "Fetch intraday minute chart data (ka10080).",
+    inputSchema: {
+      symbol: z.string().describe("Stock symbol"),
+      minuteScope: z.string().describe("Minute scope: 1,3,5,10,15,30,45,60"),
+      baseDate: z.string().optional().describe("Base date YYYYMMDD"),
+      adjustedPrice: z.string().optional().describe("Adjusted price flag: 0 or 1"),
+    },
+  },
+  async ({ symbol, minuteScope, baseDate, adjustedPrice }) => {
+    const query = new URLSearchParams();
+    query.set("symbol", symbol);
+    query.set("minuteScope", minuteScope);
+    if (baseDate) query.set("baseDate", baseDate);
+    if (adjustedPrice) query.set("adjustedPrice", adjustedPrice);
+    const data = await fetchJson(`/api/kiwoom/intraday/minutes?${query.toString()}`);
+    return {
+      content: [{ type: "text", text: JSON.stringify(data, null, 2) }],
+    };
+  },
+  );
+
+  server.registerTool(
   "kiwoom_condition_search",
   {
     title: "Kiwoom Condition Search",
