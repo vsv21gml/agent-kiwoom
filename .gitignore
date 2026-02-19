@@ -10,3 +10,4 @@ node_modules
 *_secretkey.txt
 .turbo
 *.xlsx
+*.log
