@@ -113,7 +113,6 @@ export class MonitoringService {
       summary: {
         cash: state?.cash ?? 0,
         initialCapital: state?.initialCapital ?? 0,
-        virtualMode: state?.virtualMode ?? true,
         holdings: holdingsWithNames,
       },
     };

@@ -498,6 +498,53 @@ export class KiwoomService {
     };
   }
 
+  async getAccountEvaluation(input: { queryType?: string; exchangeType?: string }) {
+    const useMock = (this.config.get<string>("KIWOOM_MOCK") ?? "true") === "true";
+    if (useMock) {
+      const mock = {
+        cash: 10000000,
+        totalAsset: 15000000,
+        holdingsValue: 5000000,
+        holdings: [],
+        source: "mock",
+      };
+      await this.logApi("GET", "/mock/account-evaluation", input, mock, 200, true);
+      return mock;
+    }
+
+    const body = {
+      qry_tp: input.queryType ?? "1",
+      dmst_stex_tp: input.exchangeType ?? "KRX",
+    };
+    const { payload } = await this.postAccountInfo("kt00018", body);
+
+    const holdings = (payload.acnt_evlt_remn_indv_tot ?? payload.list ?? []) as Array<Record<string, unknown>>;
+    const holdingsMapped = holdings.map((row) => ({
+      symbol: this.normalizeSymbol(String(row.stk_cd ?? row.symbol ?? "")),
+      name: String(row.stk_nm ?? row.name ?? ""),
+      quantity: this.toNumber(row.rmnd_qty ?? row.qty ?? 0),
+      tradableQuantity: this.toNumber(row.trde_able_qty ?? 0),
+      avgPrice: Math.abs(this.toNumber(row.pur_pric ?? row.avg_price ?? 0)),
+      price: Math.abs(this.toNumber(row.cur_prc ?? row.price ?? 0)),
+      marketValue: Math.abs(this.toNumber(row.evlt_amt ?? row.market_value ?? 0)),
+      unrealizedPnl: this.toNumber(row.evltv_prft ?? row.pnl ?? 0),
+      profitRate: this.toNumber(row.prft_rt ?? 0),
+    }));
+
+    const holdingsValue = this.toNumber(payload.tot_evlt_amt ?? 0);
+    const totalAsset = this.toNumber(payload.prsm_dpst_aset_amt ?? 0);
+    const cash = totalAsset - holdingsValue;
+
+    return {
+      cash,
+      totalAsset,
+      holdingsValue,
+      holdings: holdingsMapped,
+      raw: payload,
+      source: "kt00018",
+    };
+  }
+
   async placeOrder(input: { symbol: string; side: "BUY" | "SELL"; quantity: number; price: number }) {
     const useMock = (this.config.get<string>("KIWOOM_MOCK") ?? "true") === "true";
     if (useMock) {
@@ -649,6 +696,47 @@ export class KiwoomService {
     const baseUrl = this.config.get<string>("KIWOOM_BASE_URL") ?? "";
     const accessToken = await this.getAccessToken();
     const endpoint = `${baseUrl}/api/dostk/chart`;
+    const headers: Record<string, string> = {
+      "Content-Type": "application/json;charset=UTF-8",
+      authorization: `Bearer ${accessToken}`,
+      "api-id": apiId,
+    };
+    if (contYn) {
+      headers["cont-yn"] = contYn;
+    }
+    if (nextKey) {
+      headers["next-key"] = nextKey;
+    }
+
+    const response = await this.rateLimitedFetch(endpoint, {
+      method: "POST",
+      headers,
+      body: JSON.stringify(body),
+    });
+
+    const payload = (await response.json().catch(() => ({}))) as Record<string, unknown>;
+    const success = response.ok && Number(payload.return_code ?? 0) === 0;
+    await this.logApi("POST", endpoint, body, payload, response.status, success);
+
+    if (!response.ok) {
+      throw new Error(`Kiwoom request failed: ${response.status}`);
+    }
+    if (Number(payload.return_code ?? 0) !== 0) {
+      throw new Error(`Kiwoom return_code failed: ${String(payload.return_msg ?? payload.return_code)}`);
+    }
+
+    return { payload, response };
+  }
+
+  private async postAccountInfo(
+    apiId: string,
+    body: Record<string, unknown>,
+    contYn?: string,
+    nextKey?: string,
+  ): Promise<{ payload: Record<string, unknown>; response: Response }> {
+    const baseUrl = this.config.get<string>("KIWOOM_BASE_URL") ?? "";
+    const accessToken = await this.getAccessToken();
+    const endpoint = `${baseUrl}/api/dostk/acnt`;
     const headers: Record<string, string> = {
       "Content-Type": "application/json;charset=UTF-8",
       authorization: `Bearer ${accessToken}`,

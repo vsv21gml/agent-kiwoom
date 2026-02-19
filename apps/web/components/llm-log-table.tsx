@@ -40,7 +40,7 @@ export function LlmLogTable({ items }: Props) {
 
   return (
     <>
-      <ScrollArea>
+      <ScrollArea h="100%">
         <Table striped highlightOnHover>
           <TableThead>
             <TableTr>

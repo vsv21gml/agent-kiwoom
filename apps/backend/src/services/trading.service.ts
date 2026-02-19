@@ -36,13 +36,11 @@ export class TradingService {
     }
 
     const initialCapital = Number(this.config.get<string>("INITIAL_CAPITAL") ?? "1000000");
-    const virtualMode = (this.config.get<string>("VIRTUAL_TRADING_MODE") ?? "true") === "true";
 
     return this.portfolioStateRepository.save({
       id: "default",
       initialCapital,
       cash: initialCapital,
-      virtualMode,
     });
   }
 
@@ -155,12 +153,18 @@ export class TradingService {
 
     const state = await this.ensurePortfolioState();
     const policy = await this.strategyService.getTradingPolicy();
-    const holdingsValueForSizing = await this.calculateHoldingsValue(quoteMap);
-    const totalAssetForSizing = state.cash + holdingsValueForSizing;
+    const account = await this.kiwoom.getAccountEvaluation({});
+    state.cash = account.cash;
+    await this.portfolioStateRepository.save(state);
+
+    const holdingsValueForSizing = account.holdingsValue;
+    const totalAssetForSizing = account.totalAsset;
     const maxPositionValue =
       policy.positionSizePct > 0 ? (totalAssetForSizing * policy.positionSizePct) / 100 : 0;
-    const virtualMode = state.virtualMode;
     const processedSymbols = new Set<string>();
+    const accountHoldingMap = new Map(
+      (account.holdings ?? []).map((holding) => [holding.symbol, holding]),
+    );
 
     for (const decision of decisions) {
       if (decision.side === "HOLD") {
@@ -235,14 +239,12 @@ export class TradingService {
           );
         }
 
-        if (!virtualMode) {
-          await this.kiwoom.placeOrder({
-            symbol: decision.symbol,
-            side: "BUY",
-            quantity: finalQuantity,
-            price,
-          });
-        }
+        await this.kiwoom.placeOrder({
+          symbol: decision.symbol,
+          side: "BUY",
+          quantity: finalQuantity,
+          price,
+        });
 
         state.cash -= finalTotal;
         await this.upsertHoldingBuy(decision.symbol, finalQuantity, price);
@@ -257,7 +259,7 @@ export class TradingService {
           price,
           totalAmount: finalTotal,
           reason: adjustedReason,
-          mode: virtualMode ? "VIRTUAL" : "REAL",
+          mode: "API",
         });
         executed.push({
           symbol: decision.symbol,
@@ -271,7 +273,7 @@ export class TradingService {
       }
 
       if (decision.side === "SELL") {
-        const holding = await this.holdingRepository.findOne({ where: { symbol: decision.symbol } });
+        const holding = accountHoldingMap.get(decision.symbol);
         if (!holding || holding.quantity < decision.quantity) {
           this.logger.warn(`Skip SELL ${decision.symbol}: insufficient holding`);
           skipped.push({
@@ -303,14 +305,12 @@ export class TradingService {
           continue;
         }
 
-        if (!virtualMode) {
-          await this.kiwoom.placeOrder({
-            symbol: decision.symbol,
-            side: "SELL",
-            quantity: decision.quantity,
-            price,
-          });
-        }
+        await this.kiwoom.placeOrder({
+          symbol: decision.symbol,
+          side: "SELL",
+          quantity: decision.quantity,
+          price,
+        });
 
         state.cash += totalAmount;
         const pnl = (price - holding.avgPrice) * decision.quantity;
@@ -322,7 +322,7 @@ export class TradingService {
           price,
           totalAmount,
           reason: decision.reason,
-          mode: virtualMode ? "VIRTUAL" : "REAL",
+          mode: "API",
           realizedPnl: pnl,
         });
         executed.push({

@@ -5,9 +5,6 @@ export class PortfolioState {
   @PrimaryColumn({ default: "default" })
   id!: string;
 
-  @Column({ default: true })
-  virtualMode!: boolean;
-
   @Column({ type: "float" })
   initialCapital!: number;
 

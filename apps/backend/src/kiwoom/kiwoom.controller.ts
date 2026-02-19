@@ -1,18 +1,12 @@
 import { Body, Controller, Get, Inject, MessageEvent, Post, Query, Sse } from "@nestjs/common";
 import { Observable } from "rxjs";
-import { InjectRepository } from "@nestjs/typeorm";
-import { Repository } from "typeorm";
-import { Holding } from "../entities";
 import { KiwoomEventsService } from "../services/kiwoom-events.service";
 import { KiwoomService } from "../services/kiwoom.service";
-import { TradingService } from "../services/trading.service";
 
 @Controller("kiwoom")
 export class KiwoomController {
   constructor(
     @Inject(KiwoomService) private readonly kiwoom: KiwoomService,
-    @Inject(TradingService) private readonly trading: TradingService,
-    @InjectRepository(Holding) private readonly holdingRepository: Repository<Holding>,
     @Inject(KiwoomEventsService) private readonly kiwoomEvents: KiwoomEventsService,
   ) {}
 
@@ -52,36 +46,10 @@ export class KiwoomController {
 
   @Get("account")
   async getAccountSummary() {
-    const state = await this.trading.ensurePortfolioState();
-    const holdings = await this.holdingRepository.find();
-    const settled = await Promise.allSettled(holdings.map((holding) => this.kiwoom.getQuote(holding.symbol)));
-    const priceMap = new Map(
-      settled
-        .filter((result): result is PromiseFulfilledResult<Awaited<ReturnType<KiwoomService["getQuote"]>>> => result.status === "fulfilled")
-        .map((result) => [result.value.symbol, result.value.price]),
-    );
-
-    const holdingDetails = holdings.map((holding) => {
-      const lastPrice = priceMap.get(holding.symbol) ?? holding.avgPrice;
-      const marketValue = lastPrice * holding.quantity;
-      const unrealizedPnl = (lastPrice - holding.avgPrice) * holding.quantity;
-      return {
-        symbol: holding.symbol,
-        quantity: holding.quantity,
-        avgPrice: holding.avgPrice,
-        lastPrice,
-        marketValue,
-        unrealizedPnl,
-      };
-    });
-
-    const holdingsValue = holdingDetails.reduce((acc, item) => acc + item.marketValue, 0);
+    const result = await this.kiwoom.getAccountEvaluation({});
     return {
-      cash: state.cash,
-      holdingsValue,
-      totalAsset: state.cash + holdingsValue,
-      holdings: holdingDetails,
-      mode: state.virtualMode ? "VIRTUAL" : "REAL",
+      ...result,
+      mode: "API",
     };
   }
 

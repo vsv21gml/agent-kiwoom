@@ -84,9 +84,8 @@ export class AgentSchedulerService implements OnModuleInit {
         return runId;
       }
 
-      const state = await this.trading.ensurePortfolioState();
       this.logger.log(
-        `[${runId}] Symbols=${symbols.join(",")} Mode=${state.virtualMode ? "VIRTUAL" : "REAL"} Cash=${state.cash}`,
+        `[${runId}] Symbols=${symbols.join(",")}`,
       );
 
       try {

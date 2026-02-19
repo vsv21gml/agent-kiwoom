@@ -1,11 +1,9 @@
 import {
-  Badge,
   Box,
   Card,
   Group,
   NumberFormatter,
   ScrollArea,
-  SimpleGrid,
   Stack,
   Table,
   TableTbody,
@@ -47,7 +45,6 @@ type AssetResponse = {
   summary: {
     cash: number;
     initialCapital: number;
-    virtualMode: boolean;
     holdings: Holding[];
   };
 };
@@ -93,15 +90,6 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
 
       <Card withBorder radius="md" p="lg" mb="md" style={{ background: "var(--app-surface)" }}>
         <Group justify="space-between" wrap="nowrap">
-          <Group gap="sm" wrap="nowrap">
-            <Text c="dimmed" size="xs" tt="uppercase" fw={700}>
-              Mode
-            </Text>
-            <Badge size="lg" color={data.summary.virtualMode ? "blue" : "grape"} variant="light">
-              {data.summary.virtualMode ? "VIRTUAL" : "REAL"}
-            </Badge>
-          </Group>
-
           <Group gap="sm" wrap="nowrap">
             <Text c="dimmed" size="xs" tt="uppercase" fw={700}>
               Initial Capital
