@@ -14,7 +14,7 @@ export class KiwoomService {
   private tokenRequestPromise: Promise<string> | null = null;
   private requestQueue: Promise<void> = Promise.resolve();
   private lastRequestAt = 0;
-  private readonly minRequestIntervalMs = 333;
+  private readonly minRequestIntervalMs: number;
   private ws: WebSocket | null = null;
   private wsReady: Promise<void> | null = null;
   private wsConnected = false;
@@ -35,7 +35,9 @@ export class KiwoomService {
     @Inject(ConfigService) private readonly config: ConfigService,
     @InjectRepository(ApiCallLog) private readonly apiCallLogRepository: Repository<ApiCallLog>,
     @Inject(KiwoomEventsService) private readonly kiwoomEvents: KiwoomEventsService,
-  ) {}
+  ) {
+    this.minRequestIntervalMs = Number(this.config.get<string>("KIWOOM_MIN_REQUEST_INTERVAL_MS") ?? "350");
+  }
 
   async getQuote(symbol: string): Promise<Quote> {
     const useMock = (this.config.get<string>("KIWOOM_MOCK") ?? "true") === "true";
@@ -555,22 +557,42 @@ export class KiwoomService {
 
     const baseUrl = this.config.get<string>("KIWOOM_BASE_URL") ?? "";
     const accessToken = await this.getAccessToken();
-    const endpoint = `${baseUrl}/orders`;
+    const endpoint = `${baseUrl}/api/dostk/ordr`;
+    const apiId = input.side === "BUY" ? "kt10000" : "kt10001";
+    const orderTradeType = this.config.get<string>("KIWOOM_ORDER_TRADE_TYPE") ?? "3";
+    const normalizedQty = String(Math.max(1, Math.floor(input.quantity)));
+    const normalizedPrice =
+      orderTradeType === "0" ? String(Math.max(0, Math.floor(input.price))) : "";
+    const requestBody = {
+      dmst_stex_tp: this.config.get<string>("KIWOOM_ORDER_EXCHANGE") ?? "KRX",
+      stk_cd: input.symbol,
+      ord_qty: normalizedQty,
+      ord_uv: normalizedPrice,
+      trde_tp: orderTradeType,
+      cond_uv: "",
+    };
 
     try {
       const response = await this.rateLimitedFetch(endpoint, {
         method: "POST",
         headers: {
-          Authorization: `Bearer ${accessToken}`,
-          "Content-Type": "application/json",
-          "X-APP-KEY": this.config.get<string>("KIWOOM_APP_KEY") ?? "",
-          "X-APP-SECRET": this.config.get<string>("KIWOOM_APP_SECRET") ?? "",
+          authorization: `Bearer ${accessToken}`,
+          "Content-Type": "application/json;charset=UTF-8",
+          "api-id": apiId,
         },
-        body: JSON.stringify(input),
+        body: JSON.stringify(requestBody),
       });
 
       const payload = await response.json();
-      await this.logApi("POST", endpoint, input, payload, response.status, response.ok);
+      const returnCode = Number((payload as Record<string, unknown>)?.return_code ?? 0);
+      const success = response.ok && returnCode === 0;
+      await this.logApi("POST", endpoint, requestBody, payload, response.status, success);
+      if (!response.ok) {
+        throw new Error(`Kiwoom order request failed: ${response.status}`);
+      }
+      if (returnCode !== 0) {
+        throw new Error(`Kiwoom order return_code failed: ${String((payload as Record<string, unknown>)?.return_msg ?? returnCode)}`);
+      }
       return payload;
     } catch (error) {
       await this.logApi("POST", endpoint, input, { error: String(error) }, 500, false);
@@ -883,6 +905,13 @@ export class KiwoomService {
     const override = this.config.get<string>("KIWOOM_WS_URL");
     if (override) {
       return override;
+    }
+    const baseUrl = (this.config.get<string>("KIWOOM_BASE_URL") ?? "").toLowerCase();
+    if (baseUrl.includes("mockapi.kiwoom.com")) {
+      return "wss://mockapi.kiwoom.com:10000/api/dostk/websocket";
+    }
+    if (baseUrl.includes("api.kiwoom.com")) {
+      return "wss://api.kiwoom.com:10000/api/dostk/websocket";
     }
     return useMock
       ? "wss://mockapi.kiwoom.com:10000/api/dostk/websocket"
@@ -1278,7 +1307,20 @@ export class KiwoomService {
     return next;
   }
 
-  private rateLimitedFetch(input: string, init: RequestInit) {
-    return this.scheduleRequest(() => fetch(input, init));
+  private async rateLimitedFetch(input: string, init: RequestInit) {
+    const maxRetries = Number(this.config.get<string>("KIWOOM_RETRY_429_MAX") ?? "3");
+    const baseDelayMs = Number(this.config.get<string>("KIWOOM_RETRY_429_DELAY_MS") ?? "500");
+    let attempt = 0;
+    return this.scheduleRequest(async () => {
+      while (true) {
+        const response = await fetch(input, init);
+        if (response.status !== 429 || attempt >= maxRetries) {
+          return response;
+        }
+        attempt += 1;
+        const delay = baseDelayMs * attempt;
+        await new Promise((resolve) => setTimeout(resolve, delay));
+      }
+    });
   }
 }

@@ -1,6 +1,7 @@
 import {
   Badge,
   Box,
+  Group,
   NumberFormatter,
   ScrollArea,
   Stack,
@@ -19,6 +20,7 @@ import { Pager } from "@/components/pager";
 import { FilterBar } from "@/components/filters/filter-bar";
 import { TimeRangeFilter } from "@/components/filters/time-range-filter";
 import { TradeFilters } from "@/components/filters/trade-filters";
+import { TradesToolbar } from "@/components/trades-toolbar";
 
 type TradeLog = {
   id: string;
@@ -30,6 +32,7 @@ type TradeLog = {
   totalAmount: number;
   realizedPnl: number | null;
   mode: string;
+  status?: string | null;
   reason: string | null;
   createdAt: string;
 };
@@ -44,13 +47,17 @@ export default async function TradesPage({ searchParams }: { searchParams: Promi
   if (params.to) query.set("to", params.to);
   if (params.symbol) query.set("symbol", params.symbol);
   if (params.side) query.set("side", params.side);
+  if (params.status) query.set("status", params.status);
   const data = await fetchJson<{ items: TradeLog[]; total: number }>(`/api/monitoring/trades?${query.toString()}`);
 
   return (
     <Stack h="100%" gap="md">
-      <Title order={3} mb="md">
-        Trade Logs
-      </Title>
+      <Group justify="space-between" align="center">
+        <Title order={3} mb="md">
+          Trade Logs
+        </Title>
+        <TradesToolbar />
+      </Group>
       <FilterBar>
         <TimeRangeFilter />
         <TradeFilters />
@@ -67,6 +74,7 @@ export default async function TradesPage({ searchParams }: { searchParams: Promi
                   <TableTh>Qty</TableTh>
                   <TableTh>Price</TableTh>
                   <TableTh>Total</TableTh>
+                  <TableTh>Status</TableTh>
                   <TableTh>Realized PnL</TableTh>
               </TableTr>
             </TableThead>
@@ -87,6 +95,25 @@ export default async function TradesPage({ searchParams }: { searchParams: Promi
                   </TableTd>
                   <TableTd>
                     <NumberFormatter value={item.totalAmount} thousandSeparator suffix=" KRW" />
+                  </TableTd>
+                  <TableTd>
+                    {item.status ? (
+                      <Badge
+                        color={
+                          item.status === "EXECUTED"
+                            ? "teal"
+                            : item.status === "PARTIALLY_FILLED"
+                              ? "yellow"
+                              : item.status === "ORDER_REQUESTED"
+                                ? "blue"
+                                : "gray"
+                        }
+                      >
+                        {item.status}
+                      </Badge>
+                    ) : (
+                      "-"
+                    )}
                   </TableTd>
                   <TableTd>
                     <Text c={(item.realizedPnl ?? 0) >= 0 ? "green" : "red"}>

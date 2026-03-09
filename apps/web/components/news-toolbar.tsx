@@ -13,8 +13,7 @@ export function NewsToolbar() {
     if (loading) return;
     setLoading(true);
     try {
-      const baseUrl = process.env.NEXT_PUBLIC_BACKEND_URL ?? "http://localhost:4000";
-      const res = await fetch(`${baseUrl}/api/monitoring/news/run`, { method: "POST" });
+      const res = await fetch(`/api/monitoring/news/run`, { method: "POST" });
       if (!res.ok) {
         throw new Error(`Failed to run news: ${res.status}`);
       }

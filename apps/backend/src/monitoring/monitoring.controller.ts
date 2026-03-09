@@ -42,9 +42,19 @@ export class MonitoringController {
     return this.monitoringService.getTradeLogs(query);
   }
 
+  @Post("trades/refresh-status")
+  refreshTradeStatuses() {
+    return this.monitoringService.refreshTradeStatuses();
+  }
+
   @Get("assets")
   getAssets(@Query() query: NewsLogsQueryDto) {
     return this.monitoringService.getAssetTimeline(query);
+  }
+
+  @Post("assets/refresh-quotes")
+  refreshAssetQuotes() {
+    return this.monitoringService.refreshHoldingQuotes();
   }
 
   @Get("reports")

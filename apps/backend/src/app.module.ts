@@ -58,6 +58,8 @@ const isTrue = (value?: string) => value?.toLowerCase() === "true";
           database: config.get<string>("DB_NAME") ?? "postgres",
           autoLoadEntities: true,
           synchronize: true,
+          retryAttempts: 10,
+          retryDelay: 3000,
           ssl: sslEnabled
             ? {
                 rejectUnauthorized: !sslIgnore,

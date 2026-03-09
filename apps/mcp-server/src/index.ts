@@ -380,6 +380,114 @@ const createServer = () => {
   },
   );
 
+  server.registerTool(
+  "monitoring_trade_logs",
+  {
+    title: "Trade Logs",
+    description: "Fetch trade logs with optional filters and pagination.",
+    inputSchema: {
+      page: z.number().int().min(1).optional().describe("Page number"),
+      pageSize: z.number().int().min(1).max(100).optional().describe("Items per page"),
+      from: z.string().optional().describe("ISO date string (start)"),
+      to: z.string().optional().describe("ISO date string (end)"),
+      symbol: z.string().optional().describe("Filter by symbol"),
+      side: z.enum(["BUY", "SELL"]).optional().describe("Trade side"),
+      status: z
+        .enum(["ORDER_REQUESTED", "EXECUTED", "PARTIALLY_FILLED", "NOT_FILLED"])
+        .optional()
+        .describe("Trade status"),
+    },
+  },
+  async ({ page, pageSize, from, to, symbol, side, status }) => {
+    const query = new URLSearchParams();
+    if (page) query.set("page", String(page));
+    if (pageSize) query.set("pageSize", String(pageSize));
+    if (from) query.set("from", from);
+    if (to) query.set("to", to);
+    if (symbol) query.set("symbol", symbol);
+    if (side) query.set("side", side);
+    if (status) query.set("status", status);
+    const data = await fetchJson(`/api/monitoring/trades?${query.toString()}`);
+    return {
+      content: [{ type: "text", text: JSON.stringify(data, null, 2) }],
+    };
+  },
+  );
+
+  server.registerTool(
+  "account_dashboard",
+  {
+    title: "Account Dashboard",
+    description: "Get account summary and holdings with PnL (dashboard-style).",
+    inputSchema: {},
+  },
+  async () => {
+    const [account, assets] = await Promise.all([
+      fetchJson("/api/kiwoom/account"),
+      fetchJson("/api/monitoring/assets?page=1&pageSize=1"),
+    ]);
+
+    const assetSummary = assets?.summary ?? {};
+    const holdings = Array.isArray(account.holdings)
+      ? account.holdings.map((holding: any) => {
+          const pnl = holding.unrealizedPnl ?? 0;
+          const pnlRate = holding.profitRate ?? 0;
+          const pnlDirection = pnl > 0 ? "profit" : pnl < 0 ? "loss" : "flat";
+          return {
+            symbol: holding.symbol,
+            name: holding.name ?? null,
+            quantity: holding.quantity ?? 0,
+            avgPrice: holding.avgPrice ?? 0,
+            currentPrice: holding.price ?? 0,
+            marketValue: holding.marketValue ?? 0,
+            unrealizedPnl: pnl,
+            profitRate: pnlRate,
+            pnlDirection,
+          };
+        })
+      : [];
+
+    const summary = {
+      cash: assetSummary.cash ?? account.cash ?? 0,
+      holdingsValue: assetSummary.holdingsValue ?? account.holdingsValue ?? 0,
+      totalAsset: account.totalAsset ?? 0,
+      initialCapital: assetSummary.initialCapital ?? 0,
+      mode: account.mode ?? "API",
+      holdingsCount: holdings.length,
+    };
+
+    const pnlTotals = holdings.reduce(
+      (acc, holding) => {
+        acc.unrealizedPnl += holding.unrealizedPnl ?? 0;
+        acc.marketValue += holding.marketValue ?? 0;
+        return acc;
+      },
+      { unrealizedPnl: 0, marketValue: 0 },
+    );
+
+    return {
+      content: [
+        {
+          type: "text",
+          text: JSON.stringify(
+            {
+              summary,
+              totals: {
+                unrealizedPnl: pnlTotals.unrealizedPnl,
+                holdingsMarketValue: pnlTotals.marketValue,
+              },
+              holdings,
+              assetTimeline: assets?.timeline ?? null,
+            },
+            null,
+            2,
+          ),
+        },
+      ],
+    };
+  },
+  );
+
   return server;
 };
 

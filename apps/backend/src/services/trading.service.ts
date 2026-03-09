@@ -51,7 +51,8 @@ export class TradingService {
     const strategy = await this.strategyService.getCurrentStrategy();
     const state = await this.ensurePortfolioState();
     const policy = await this.strategyService.getTradingPolicy();
-    const fallback = this.ruleBasedDecisions(context.quotes, context.holdings);
+    const disableFallback = (this.config.get<string>("DISABLE_FALLBACK_RULES") ?? "true") === "true";
+    const fallback = disableFallback ? [] : this.ruleBasedDecisions(context.quotes, context.holdings);
     const latestNews = await this.newsService.getLatestNews(20);
     const newsSignals = await this.buildNewsSignals(context.quotes, latestNews);
     const realtimeSignals = context.quotes.map((quote) => this.kiwoom.getRealtimeSignal(quote.symbol));
@@ -122,7 +123,7 @@ export class TradingService {
       price: number;
       totalAmount: number;
       reason?: string;
-      status: "EXECUTED";
+      status: "EXECUTED" | "ORDER_REQUESTED" | "PARTIALLY_FILLED" | "NOT_FILLED";
     }> = [];
     const skipped: Array<{
       symbol: string;
@@ -138,33 +139,123 @@ export class TradingService {
         | "SKIPPED_POLICY";
     }> = [];
 
+    const state = await this.ensurePortfolioState();
+    const policy = await this.strategyService.getTradingPolicy();
+    const isVirtualMode = (this.config.get<string>("VIRTUAL_TRADING_MODE") ?? "true").toLowerCase() === "true";
     if (decisions.length === 0) {
-      await this.snapshotAsset(quoteMap);
-      const holdingsValue = await this.calculateHoldingsValue(quoteMap);
-      const state = await this.ensurePortfolioState();
+      if (isVirtualMode) {
+        await this.snapshotAsset(quoteMap);
+        const holdingsValue = await this.calculateHoldingsValue(quoteMap);
+        return {
+          executed,
+          skipped,
+          cash: state.cash,
+          holdingsValue,
+          totalAsset: state.cash + holdingsValue,
+        };
+      }
+      const account = await this.kiwoom.getAccountEvaluation({});
+      await this.syncPortfolioFromAccount(account);
+      await this.portfolioSnapshotRepository.save({
+        cash: account.cash,
+        holdingsValue: account.holdingsValue,
+        totalAsset: account.totalAsset,
+      });
       return {
         executed,
         skipped,
-        cash: state.cash,
-        holdingsValue,
-        totalAsset: state.cash + holdingsValue,
+        cash: account.cash,
+        holdingsValue: account.holdingsValue,
+        totalAsset: account.totalAsset,
       };
     }
 
-    const state = await this.ensurePortfolioState();
-    const policy = await this.strategyService.getTradingPolicy();
-    const account = await this.kiwoom.getAccountEvaluation({});
-    state.cash = account.cash;
-    await this.portfolioStateRepository.save(state);
+    let holdingsValueForSizing = 0;
+    let totalAssetForSizing = 0;
+    let holdingsForExecution: Array<{ symbol: string; quantity: number; avgPrice: number }> = [];
+    let availableCash = state.cash;
+    const apiOrderRequests: Array<{ id: string; symbol: string; side: "BUY" | "SELL"; quantity: number }> = [];
 
-    const holdingsValueForSizing = account.holdingsValue;
-    const totalAssetForSizing = account.totalAsset;
+    if (isVirtualMode) {
+      const localHoldings = await this.holdingRepository.find();
+      holdingsForExecution = localHoldings.map((holding) => ({
+        symbol: holding.symbol,
+        quantity: holding.quantity,
+        avgPrice: holding.avgPrice,
+      }));
+      holdingsValueForSizing = localHoldings.reduce((acc, holding) => {
+        const price = quoteMap[holding.symbol] ?? holding.avgPrice;
+        return acc + price * holding.quantity;
+      }, 0);
+      totalAssetForSizing = state.cash + holdingsValueForSizing;
+      availableCash = state.cash;
+    } else {
+      const account = await this.kiwoom.getAccountEvaluation({});
+      state.cash = account.cash;
+      await this.portfolioStateRepository.save(state);
+      holdingsForExecution = (account.holdings ?? []).map((holding) => ({
+        symbol: holding.symbol,
+        quantity: holding.quantity,
+        avgPrice: holding.avgPrice,
+      }));
+      holdingsValueForSizing = account.holdingsValue;
+      totalAssetForSizing = account.totalAsset;
+      availableCash = account.cash;
+    }
+
+    const lossStreak = await this.getTodayConsecutiveLosses();
+    if (lossStreak >= 2) {
+      this.logger.warn(`Trading halted: ${lossStreak} consecutive losses today.`);
+      for (const decision of decisions) {
+        if (decision.side === "HOLD") {
+          continue;
+        }
+        skipped.push({
+          symbol: decision.symbol,
+          side: decision.side,
+          quantity: decision.quantity,
+          price: this.resolveExecutionPrice(decision.symbol, quoteMap),
+          totalAmount: this.resolveExecutionPrice(decision.symbol, quoteMap) * decision.quantity,
+          reason: "Stopped after consecutive losses (policy)",
+          status: "SKIPPED_POLICY",
+        });
+      }
+      if (isVirtualMode) {
+        await this.snapshotAsset(quoteMap);
+        const holdingsValue = await this.calculateHoldingsValue(quoteMap);
+        return {
+          executed,
+          skipped,
+          cash: state.cash,
+          holdingsValue,
+          totalAsset: state.cash + holdingsValue,
+        };
+      }
+      const account = await this.kiwoom.getAccountEvaluation({});
+      await this.syncPortfolioFromAccount(account);
+      await this.portfolioSnapshotRepository.save({
+        cash: account.cash,
+        holdingsValue: account.holdingsValue,
+        totalAsset: account.totalAsset,
+      });
+      return {
+        executed,
+        skipped,
+        cash: account.cash,
+        holdingsValue: account.holdingsValue,
+        totalAsset: account.totalAsset,
+      };
+    }
+
     const maxPositionValue =
       policy.positionSizePct > 0 ? (totalAssetForSizing * policy.positionSizePct) / 100 : 0;
     const processedSymbols = new Set<string>();
     const accountHoldingMap = new Map(
-      (account.holdings ?? []).map((holding) => [holding.symbol, holding]),
+      holdingsForExecution.map((holding) => [holding.symbol, holding]),
     );
+    const maxPositions = 2;
+    let openPositions = holdingsForExecution.filter((holding) => holding.quantity > 0).length;
+    let pendingNewPositions = 0;
 
     for (const decision of decisions) {
       if (decision.side === "HOLD") {
@@ -188,6 +279,19 @@ export class TradingService {
       processedSymbols.add(decision.symbol);
 
       if (decision.side === "BUY") {
+        if (openPositions + pendingNewPositions >= maxPositions) {
+          this.logger.warn(`Skip BUY ${decision.symbol}: max positions ${maxPositions} reached`);
+          skipped.push({
+            symbol: decision.symbol,
+            side: "BUY",
+            quantity: decision.quantity,
+            price,
+            totalAmount,
+            reason: `${decision.reason ?? ""} (max positions ${maxPositions})`.trim(),
+            status: "SKIPPED_POLICY",
+          });
+          continue;
+        }
         if (price <= 0) {
           this.logger.warn(`Skip BUY ${decision.symbol}: invalid price=${price}`);
           skipped.push({
@@ -202,7 +306,7 @@ export class TradingService {
           continue;
         }
 
-        const maxAffordable = Math.floor(state.cash / price);
+        const maxAffordable = Math.floor(availableCash / price);
         const maxByPolicy = maxPositionValue > 0 ? Math.floor(maxPositionValue / price) : maxAffordable;
         if (maxAffordable <= 0) {
           this.logger.warn(`Skip BUY ${decision.symbol}: insufficient cash`);
@@ -233,25 +337,57 @@ export class TradingService {
           continue;
         }
         const finalTotal = finalQuantity * price;
+        const adjustedReason =
+          finalQuantity < decision.quantity
+            ? `${decision.reason ?? ""} (auto-resized from ${decision.quantity} to ${finalQuantity})`.trim()
+            : decision.reason;
         if (finalQuantity < decision.quantity) {
           this.logger.warn(
             `Reduce BUY ${decision.symbol}: requested=${decision.quantity}, affordable=${finalQuantity}`,
           );
         }
 
-        await this.kiwoom.placeOrder({
-          symbol: decision.symbol,
-          side: "BUY",
-          quantity: finalQuantity,
-          price,
-        });
+        if (!isVirtualMode) {
+          const accountQtyBefore = accountHoldingMap.get(decision.symbol)?.quantity ?? 0;
+          await this.kiwoom.placeOrder({
+            symbol: decision.symbol,
+            side: "BUY",
+            quantity: finalQuantity,
+            price,
+          });
+          availableCash -= finalTotal;
+          const orderLog = await this.tradeLogRepository.save({
+            symbol: decision.symbol,
+            side: "BUY",
+            quantity: finalQuantity,
+            price,
+            totalAmount: finalTotal,
+            reason: adjustedReason,
+            mode: "API",
+            status: "ORDER_REQUESTED",
+            accountQtyBefore,
+          });
+          apiOrderRequests.push({
+            id: orderLog.id,
+            symbol: decision.symbol,
+            side: "BUY",
+            quantity: finalQuantity,
+          });
+          pendingNewPositions += 1;
+          executed.push({
+            symbol: decision.symbol,
+            side: "BUY",
+            quantity: finalQuantity,
+            price,
+            totalAmount: finalTotal,
+            reason: adjustedReason,
+            status: "ORDER_REQUESTED",
+          });
+          continue;
+        }
 
         state.cash -= finalTotal;
         await this.upsertHoldingBuy(decision.symbol, finalQuantity, price);
-        const adjustedReason =
-          finalQuantity < decision.quantity
-            ? `${decision.reason ?? ""} (auto-resized from ${decision.quantity} to ${finalQuantity})`.trim()
-            : decision.reason;
         await this.tradeLogRepository.save({
           symbol: decision.symbol,
           side: "BUY",
@@ -259,7 +395,8 @@ export class TradingService {
           price,
           totalAmount: finalTotal,
           reason: adjustedReason,
-          mode: "API",
+          mode: "VIRTUAL",
+          status: "EXECUTED",
         });
         executed.push({
           symbol: decision.symbol,
@@ -304,16 +441,47 @@ export class TradingService {
           });
           continue;
         }
+        const pnl = (price - holding.avgPrice) * decision.quantity;
 
-        await this.kiwoom.placeOrder({
-          symbol: decision.symbol,
-          side: "SELL",
-          quantity: decision.quantity,
-          price,
-        });
+        if (!isVirtualMode) {
+          const accountQtyBefore = accountHoldingMap.get(decision.symbol)?.quantity ?? 0;
+          await this.kiwoom.placeOrder({
+            symbol: decision.symbol,
+            side: "SELL",
+            quantity: decision.quantity,
+            price,
+          });
+          const orderLog = await this.tradeLogRepository.save({
+            symbol: decision.symbol,
+            side: "SELL",
+            quantity: decision.quantity,
+            price,
+            totalAmount,
+            reason: decision.reason,
+            mode: "API",
+            status: "ORDER_REQUESTED",
+            accountQtyBefore,
+            realizedPnl: pnl,
+          });
+          apiOrderRequests.push({
+            id: orderLog.id,
+            symbol: decision.symbol,
+            side: "SELL",
+            quantity: decision.quantity,
+          });
+          executed.push({
+            symbol: decision.symbol,
+            side: "SELL",
+            quantity: decision.quantity,
+            price,
+            totalAmount,
+            reason: decision.reason,
+            status: "ORDER_REQUESTED",
+          });
+          continue;
+        }
 
         state.cash += totalAmount;
-        const pnl = (price - holding.avgPrice) * decision.quantity;
         await this.upsertHoldingSell(decision.symbol, decision.quantity);
         await this.tradeLogRepository.save({
           symbol: decision.symbol,
@@ -322,7 +490,8 @@ export class TradingService {
           price,
           totalAmount,
           reason: decision.reason,
-          mode: "API",
+          mode: "VIRTUAL",
+          status: "EXECUTED",
           realizedPnl: pnl,
         });
         executed.push({
@@ -337,16 +506,55 @@ export class TradingService {
       }
     }
 
-    await this.portfolioStateRepository.save(state);
+    if (isVirtualMode) {
+      await this.portfolioStateRepository.save(state);
+      await this.snapshotAsset(quoteMap);
+      const holdingsValue = await this.calculateHoldingsValue(quoteMap);
+      return {
+        executed,
+        skipped,
+        cash: state.cash,
+        holdingsValue,
+        totalAsset: state.cash + holdingsValue,
+      };
+    }
 
-    await this.snapshotAsset(quoteMap);
-    const holdingsValue = await this.calculateHoldingsValue(quoteMap);
+    const refreshedAccount = await this.kiwoom.getAccountEvaluation({});
+    const statusByLogId = this.reconcileApiOrderStatuses(
+      apiOrderRequests,
+      holdingsForExecution,
+      refreshedAccount.holdings ?? [],
+    );
+    for (const [id, status] of statusByLogId.entries()) {
+      await this.tradeLogRepository.update({ id }, { status });
+    }
+    for (const item of executed) {
+      if (item.status !== "ORDER_REQUESTED") {
+        continue;
+      }
+      const log = apiOrderRequests.find(
+        (request) =>
+          request.symbol === item.symbol &&
+          request.side === item.side &&
+          request.quantity === item.quantity,
+      );
+      const finalStatus = log ? statusByLogId.get(log.id) : undefined;
+      if (finalStatus) {
+        item.status = finalStatus;
+      }
+    }
+    await this.syncPortfolioFromAccount(refreshedAccount);
+    await this.portfolioSnapshotRepository.save({
+      cash: refreshedAccount.cash,
+      holdingsValue: refreshedAccount.holdingsValue,
+      totalAsset: refreshedAccount.totalAsset,
+    });
     return {
       executed,
       skipped,
-      cash: state.cash,
-      holdingsValue,
-      totalAsset: state.cash + holdingsValue,
+      cash: refreshedAccount.cash,
+      holdingsValue: refreshedAccount.holdingsValue,
+      totalAsset: refreshedAccount.totalAsset,
     };
   }
 
@@ -457,5 +665,105 @@ export class TradingService {
       return realtime.price;
     }
     return quoteMap[symbol] ?? 0;
+  }
+
+  private reconcileApiOrderStatuses(
+    requests: Array<{ id: string; symbol: string; side: "BUY" | "SELL"; quantity: number }>,
+    beforeHoldings: Array<{ symbol: string; quantity: number }>,
+    afterHoldings: Array<{ symbol: string; quantity: number }>,
+  ) {
+    const beforeQty = new Map(beforeHoldings.map((holding) => [holding.symbol, holding.quantity]));
+    const afterQty = new Map(afterHoldings.map((holding) => [holding.symbol, holding.quantity]));
+
+    const buyFilledBySymbol = new Map<string, number>();
+    const sellFilledBySymbol = new Map<string, number>();
+    const symbols = new Set<string>([
+      ...beforeQty.keys(),
+      ...afterQty.keys(),
+      ...requests.map((request) => request.symbol),
+    ]);
+    for (const symbol of symbols) {
+      const before = beforeQty.get(symbol) ?? 0;
+      const after = afterQty.get(symbol) ?? 0;
+      buyFilledBySymbol.set(symbol, Math.max(0, after - before));
+      sellFilledBySymbol.set(symbol, Math.max(0, before - after));
+    }
+
+    const result = new Map<string, "EXECUTED" | "PARTIALLY_FILLED" | "NOT_FILLED">();
+    for (const request of requests) {
+      if (request.side === "BUY") {
+        const remaining = buyFilledBySymbol.get(request.symbol) ?? 0;
+        if (remaining >= request.quantity) {
+          result.set(request.id, "EXECUTED");
+          buyFilledBySymbol.set(request.symbol, remaining - request.quantity);
+        } else if (remaining > 0) {
+          result.set(request.id, "PARTIALLY_FILLED");
+          buyFilledBySymbol.set(request.symbol, 0);
+        } else {
+          result.set(request.id, "NOT_FILLED");
+        }
+        continue;
+      }
+
+      const remaining = sellFilledBySymbol.get(request.symbol) ?? 0;
+      if (remaining >= request.quantity) {
+        result.set(request.id, "EXECUTED");
+        sellFilledBySymbol.set(request.symbol, remaining - request.quantity);
+      } else if (remaining > 0) {
+        result.set(request.id, "PARTIALLY_FILLED");
+        sellFilledBySymbol.set(request.symbol, 0);
+      } else {
+        result.set(request.id, "NOT_FILLED");
+      }
+    }
+
+    return result;
+  }
+
+  private getTodayConsecutiveLosses = async () => {
+    const now = new Date();
+    const start = new Date(now);
+    start.setHours(0, 0, 0, 0);
+    const logs = await this.tradeLogRepository.find({
+      where: {
+        side: "SELL",
+        status: "EXECUTED",
+      },
+      order: { createdAt: "ASC" },
+      take: 500,
+    });
+    const todayLogs = logs.filter(
+      (log) =>
+        log.realizedPnl != null &&
+        new Date(log.createdAt).getTime() >= start.getTime() &&
+        new Date(log.createdAt).getTime() <= now.getTime(),
+    );
+    let streak = 0;
+    for (const log of todayLogs) {
+      if ((log.realizedPnl ?? 0) < 0) {
+        streak += 1;
+      } else {
+        streak = 0;
+      }
+    }
+    return streak;
+  };
+
+  private async syncPortfolioFromAccount(account: Awaited<ReturnType<KiwoomService["getAccountEvaluation"]>>) {
+    const state = await this.ensurePortfolioState();
+    state.cash = account.cash;
+    await this.portfolioStateRepository.save(state);
+
+    await this.holdingRepository.clear();
+    const next = (account.holdings ?? [])
+      .filter((holding) => holding.symbol && holding.quantity > 0)
+      .map((holding) => ({
+        symbol: holding.symbol,
+        quantity: holding.quantity,
+        avgPrice: holding.avgPrice,
+      }));
+    if (next.length > 0) {
+      await this.holdingRepository.save(next);
+    }
   }
 }

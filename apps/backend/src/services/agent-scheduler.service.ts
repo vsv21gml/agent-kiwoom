@@ -174,7 +174,7 @@ export class AgentSchedulerService implements OnModuleInit {
     } catch (error) {
       const durationMs = Date.now() - startedAt;
       this.logger.error(`[${runId}] Market cycle failed after ${durationMs}ms`, error as Error);
-      throw error;
+      return runId;
     }
 
     return runId;
@@ -208,13 +208,17 @@ export class AgentSchedulerService implements OnModuleInit {
   }
 
   async runNewsCycle() {
-    const news = await this.news.scrapeLatestNews();
-    await this.news.refineStrategyWithNews();
-    this.logger.log(`News cycle complete. Articles=${news.length}`);
-    this.monitoringEvents.emit("news", {
-      articles: news.length,
-      at: new Date().toISOString(),
-    });
+    try {
+      const news = await this.news.scrapeLatestNews();
+      await this.news.refineStrategyWithNews();
+      this.logger.log(`News cycle complete. Articles=${news.length}`);
+      this.monitoringEvents.emit("news", {
+        articles: news.length,
+        at: new Date().toISOString(),
+      });
+    } catch (error) {
+      this.logger.error(`News cycle failed: ${String(error)}`);
+    }
   }
 
   async runNewsCycleNow() {
@@ -495,13 +499,13 @@ export class AgentSchedulerService implements OnModuleInit {
       }
     }
     lines.push("");
-    lines.push("Executed Trades");
+    lines.push("Order Results");
     if (input.execution.executed.length === 0) {
       lines.push("- None");
     } else {
       for (const trade of input.execution.executed) {
         lines.push(
-          `- ${trade.side} ${label(trade.symbol)} x${trade.quantity} @ ${trade.price} total=${trade.totalAmount} reason=${trade.reason ?? "n/a"}`,
+          `- ${trade.side} ${label(trade.symbol)} x${trade.quantity} @ ${trade.price} total=${trade.totalAmount} status=${trade.status} reason=${trade.reason ?? "n/a"}`,
         );
       }
     }

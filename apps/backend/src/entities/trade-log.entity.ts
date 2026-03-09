@@ -26,6 +26,12 @@ export class TradeLog {
   @Column()
   mode!: string;
 
+  @Column({ type: "varchar", length: 40, nullable: true })
+  status?: string | null;
+
+  @Column({ type: "int", nullable: true })
+  accountQtyBefore?: number | null;
+
   @Column({ type: "float", nullable: true })
   realizedPnl?: number | null;
 

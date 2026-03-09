@@ -9,6 +9,14 @@ const sideOptions = [
   { value: "SELL", label: "SELL" },
 ];
 
+const statusOptions = [
+  { value: "", label: "All" },
+  { value: "ORDER_REQUESTED", label: "ORDER_REQUESTED" },
+  { value: "EXECUTED", label: "EXECUTED" },
+  { value: "PARTIALLY_FILLED", label: "PARTIALLY_FILLED" },
+  { value: "NOT_FILLED", label: "NOT_FILLED" },
+];
+
 export function TradeFilters() {
   const router = useRouter();
   const pathname = usePathname();
@@ -40,6 +48,13 @@ export function TradeFilters() {
         defaultValue={searchParams.get("symbol") ?? ""}
         onBlur={(event) => applyParam("symbol", event.currentTarget.value.trim())}
         w={200}
+      />
+      <Select
+        label="Status"
+        data={statusOptions}
+        value={searchParams.get("status") ?? ""}
+        onChange={(value) => applyParam("status", value)}
+        w={220}
       />
     </>
   );

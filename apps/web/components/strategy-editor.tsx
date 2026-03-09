@@ -11,12 +11,10 @@ export function StrategyEditor() {
   const [saving, setSaving] = useState(false);
   const [status, setStatus] = useState<string | null>(null);
 
-  const baseUrl = process.env.NEXT_PUBLIC_BACKEND_URL ?? "http://localhost:4000";
-
   const load = async () => {
     setLoading(true);
     try {
-      const res = await fetch(`${baseUrl}/api/strategy`, { cache: "no-store" });
+      const res = await fetch(`/api/strategy`, { cache: "no-store" });
       if (!res.ok) throw new Error(`Failed to load: ${res.status}`);
       const data = (await res.json()) as StrategyResponse;
       setContent(data.content ?? "");
@@ -31,7 +29,7 @@ export function StrategyEditor() {
   const save = async () => {
     setSaving(true);
     try {
-      const res = await fetch(`${baseUrl}/api/strategy`, {
+      const res = await fetch(`/api/strategy`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ content }),

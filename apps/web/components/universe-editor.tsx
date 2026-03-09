@@ -57,13 +57,11 @@ export function UniverseEditor({ entries }: Props) {
   const [saving, setSaving] = useState(false);
   const [status, setStatus] = useState<string | null>(null);
 
-  const baseUrl = process.env.NEXT_PUBLIC_BACKEND_URL ?? "http://localhost:4000";
-
   const save = async () => {
     setSaving(true);
     try {
       const payload = parseCsv(value);
-      const res = await fetch(`${baseUrl}/api/universe`, {
+      const res = await fetch(`/api/universe`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ entries: payload }),

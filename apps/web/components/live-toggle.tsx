@@ -15,8 +15,7 @@ export function LiveToggle() {
       return;
     }
 
-    const baseUrl = process.env.NEXT_PUBLIC_BACKEND_URL ?? "http://localhost:4000";
-    const source = new EventSource(`${baseUrl}/api/monitoring/stream`);
+    const source = new EventSource(`/api/monitoring/stream`);
 
     const handleEvent = () => {
       router.refresh();

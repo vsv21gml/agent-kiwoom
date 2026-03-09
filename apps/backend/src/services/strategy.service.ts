@@ -131,6 +131,13 @@ export class StrategyService {
     await this.strategyRevisionRepository.save({ source, content });
   }
 
+  async getLatestRevisionBySource(source: string) {
+    return this.strategyRevisionRepository.findOne({
+      where: { source },
+      order: { createdAt: "DESC" },
+    });
+  }
+
   private async ensureStrategyRecord() {
     const existing = await this.strategyDocumentRepository.findOne({ where: { key: "default" } });
     if (existing) {

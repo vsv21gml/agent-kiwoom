@@ -1,4 +1,10 @@
-const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL ?? "http://localhost:4000";
+import "server-only";
+
+const backendUrl =
+  process.env.BACKEND_INTERNAL_URL ??
+  process.env.BACKEND_URL ??
+  process.env.NEXT_PUBLIC_BACKEND_URL ??
+  "http://localhost:4000";
 
 export async function fetchJson<T>(path: string): Promise<T> {
   const res = await fetch(`${backendUrl}${path}`, { cache: "no-store" });

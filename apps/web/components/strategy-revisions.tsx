@@ -58,8 +58,6 @@ export function StrategyRevisions({ items }: { items: StrategyRevision[] }) {
   const [activeId, setActiveId] = useState<string | null>(null);
   const [diff, setDiff] = useState<DiffLine[]>([]);
   const [loading, setLoading] = useState(false);
-
-  const baseUrl = process.env.NEXT_PUBLIC_BACKEND_URL ?? "http://localhost:4000";
   const indexMap = useMemo(() => new Map(items.map((item, idx) => [item.id, idx])), [items]);
 
   const openRevision = async (id: string) => {
@@ -68,11 +66,11 @@ export function StrategyRevisions({ items }: { items: StrategyRevision[] }) {
     setLoading(true);
     try {
       const idx = indexMap.get(id) ?? 0;
-      const current = await fetch(`${baseUrl}/api/strategy/revisions/${id}`).then((res) => res.json() as Promise<RevisionPayload>);
+      const current = await fetch(`/api/strategy/revisions/${id}`).then((res) => res.json() as Promise<RevisionPayload>);
       const previousId = items[idx + 1]?.id;
       let previousContent = "";
       if (previousId) {
-        const prev = await fetch(`${baseUrl}/api/strategy/revisions/${previousId}`).then((res) => res.json() as Promise<RevisionPayload>);
+        const prev = await fetch(`/api/strategy/revisions/${previousId}`).then((res) => res.json() as Promise<RevisionPayload>);
         previousContent = prev?.content ?? "";
       }
       const lines = diffLines(previousContent, current?.content ?? "");
