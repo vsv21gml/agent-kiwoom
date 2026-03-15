@@ -86,10 +86,14 @@ export class StrategyService {
   async getTradingPolicy() {
     const content = await this.getCurrentStrategy();
     const defaults = {
-      takeProfitPct: 1.0,
-      stopLossPct: -1.0,
-      positionSizePct: 10,
-      minHoldMinutes: 0,
+      takeProfitPct: 2.5,
+      stopLossPct: -2.0,
+      positionSizePct: 8,
+      minHoldMinutes: 90,
+      maxNewBuyCount: 2,
+      maxPositions: 2,
+      maxEntryDailyChangePct: 4,
+      minEntryDailyChangePct: -2,
     };
 
     const sectionMatch = content.split(/#+\s*Trading Rules/i)[1];
@@ -121,6 +125,10 @@ export class StrategyService {
       stopLossPct: parseNumber(parsed.STOP_LOSS_PCT, defaults.stopLossPct),
       positionSizePct: parseNumber(parsed.POSITION_SIZE_PCT, defaults.positionSizePct),
       minHoldMinutes: parseNumber(parsed.MIN_HOLD_MINUTES, defaults.minHoldMinutes),
+      maxNewBuyCount: parseNumber(parsed.MAX_NEW_BUY_COUNT, defaults.maxNewBuyCount),
+      maxPositions: parseNumber(parsed.MAX_POSITIONS, defaults.maxPositions),
+      maxEntryDailyChangePct: parseNumber(parsed.MAX_ENTRY_DAILY_CHANGE_PCT, defaults.maxEntryDailyChangePct),
+      minEntryDailyChangePct: parseNumber(parsed.MIN_ENTRY_DAILY_CHANGE_PCT, defaults.minEntryDailyChangePct),
     };
   }
 
@@ -194,10 +202,14 @@ export class StrategyService {
   private tradingRulesTemplate() {
     return [
       "## Trading Rules",
-      "TAKE_PROFIT_PCT=1.0",
-      "STOP_LOSS_PCT=-1.0",
-      "POSITION_SIZE_PCT=10",
-      "MIN_HOLD_MINUTES=0",
+      "TAKE_PROFIT_PCT=2.5",
+      "STOP_LOSS_PCT=-2.0",
+      "POSITION_SIZE_PCT=8",
+      "MIN_HOLD_MINUTES=90",
+      "MAX_NEW_BUY_COUNT=2",
+      "MAX_POSITIONS=2",
+      "MAX_ENTRY_DAILY_CHANGE_PCT=4.0",
+      "MIN_ENTRY_DAILY_CHANGE_PCT=-2.0",
     ].join("\n");
   }
 }

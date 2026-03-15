@@ -253,9 +253,12 @@ export class TradingService {
     const accountHoldingMap = new Map(
       holdingsForExecution.map((holding) => [holding.symbol, holding]),
     );
-    const maxPositions = 2;
+    const maxPositions = Math.max(1, Math.floor(policy.maxPositions));
     let openPositions = holdingsForExecution.filter((holding) => holding.quantity > 0).length;
     let pendingNewPositions = 0;
+    let newBuyCount = 0;
+
+    const latestQuotes = await this.loadLatestQuotesForSymbols(decisions.map((decision) => decision.symbol));
 
     for (const decision of decisions) {
       if (decision.side === "HOLD") {
@@ -279,6 +282,18 @@ export class TradingService {
       processedSymbols.add(decision.symbol);
 
       if (decision.side === "BUY") {
+        if (newBuyCount >= Math.max(1, Math.floor(policy.maxNewBuyCount))) {
+          skipped.push({
+            symbol: decision.symbol,
+            side: "BUY",
+            quantity: decision.quantity,
+            price,
+            totalAmount,
+            reason: `${decision.reason ?? ""} (max new buys ${policy.maxNewBuyCount})`.trim(),
+            status: "SKIPPED_POLICY",
+          });
+          continue;
+        }
         if (openPositions + pendingNewPositions >= maxPositions) {
           this.logger.warn(`Skip BUY ${decision.symbol}: max positions ${maxPositions} reached`);
           skipped.push({
@@ -288,6 +303,38 @@ export class TradingService {
             price,
             totalAmount,
             reason: `${decision.reason ?? ""} (max positions ${maxPositions})`.trim(),
+            status: "SKIPPED_POLICY",
+          });
+          continue;
+        }
+        const latestQuote = latestQuotes.get(decision.symbol);
+        if (
+          latestQuote &&
+          (latestQuote.changeRate > policy.maxEntryDailyChangePct ||
+            latestQuote.changeRate < policy.minEntryDailyChangePct)
+        ) {
+          skipped.push({
+            symbol: decision.symbol,
+            side: "BUY",
+            quantity: decision.quantity,
+            price,
+            totalAmount,
+            reason:
+              `${decision.reason ?? ""} (entry daily change ${latestQuote.changeRate.toFixed(2)}% outside ` +
+              `${policy.minEntryDailyChangePct}% to ${policy.maxEntryDailyChangePct}%)`.trim(),
+            status: "SKIPPED_POLICY",
+          });
+          continue;
+        }
+        const recentLoss = await this.findRecentLossForSymbol(decision.symbol);
+        if (recentLoss) {
+          skipped.push({
+            symbol: decision.symbol,
+            side: "BUY",
+            quantity: decision.quantity,
+            price,
+            totalAmount,
+            reason: `${decision.reason ?? ""} (recent losing exit on same symbol cooldown)`.trim(),
             status: "SKIPPED_POLICY",
           });
           continue;
@@ -374,6 +421,7 @@ export class TradingService {
             quantity: finalQuantity,
           });
           pendingNewPositions += 1;
+          newBuyCount += 1;
           executed.push({
             symbol: decision.symbol,
             side: "BUY",
@@ -398,6 +446,7 @@ export class TradingService {
           mode: "VIRTUAL",
           status: "EXECUTED",
         });
+        newBuyCount += 1;
         executed.push({
           symbol: decision.symbol,
           side: "BUY",
@@ -426,6 +475,21 @@ export class TradingService {
         }
 
         const profitPct = holding.avgPrice > 0 ? ((price - holding.avgPrice) / holding.avgPrice) * 100 : 0;
+        const holdingAgeMinutes = await this.getHoldingAgeMinutes(decision.symbol);
+        const stopLossBreached = profitPct <= policy.stopLossPct;
+        if (holdingAgeMinutes != null && holdingAgeMinutes < policy.minHoldMinutes && !stopLossBreached) {
+          skipped.push({
+            symbol: decision.symbol,
+            side: "SELL",
+            quantity: decision.quantity,
+            price,
+            totalAmount,
+            reason:
+              `${decision.reason ?? ""} (min hold ${policy.minHoldMinutes}m, current ${holdingAgeMinutes.toFixed(1)}m)`.trim(),
+            status: "SKIPPED_POLICY",
+          });
+          continue;
+        }
         if (profitPct < policy.takeProfitPct && profitPct > policy.stopLossPct) {
           this.logger.warn(
             `Skip SELL ${decision.symbol}: profit ${profitPct.toFixed(3)}% not beyond take/stop rules`,
@@ -748,6 +812,66 @@ export class TradingService {
     }
     return streak;
   };
+
+  private async loadLatestQuotesForSymbols(symbols: string[]) {
+    const deduped = Array.from(new Set(symbols.filter(Boolean)));
+    if (deduped.length === 0) {
+      return new Map<string, { changeRate: number; price: number }>();
+    }
+
+    const rows = await this.kiwoom
+      .applyRealtimeToQuotes(
+        await Promise.all(
+          deduped.map(async (symbol) => {
+            try {
+              return await this.kiwoom.getQuote(symbol);
+            } catch {
+              return null;
+            }
+          }),
+        ).then((items) => items.filter(Boolean) as Array<Awaited<ReturnType<KiwoomService["getQuote"]>>>),
+      );
+
+    return new Map(rows.map((quote) => [quote.symbol, { changeRate: quote.changeRate, price: quote.price }]));
+  }
+
+  private async getHoldingAgeMinutes(symbol: string) {
+    const latestBuy = await this.tradeLogRepository.findOne({
+      where: [
+        { symbol, side: "BUY", status: "EXECUTED" },
+        { symbol, side: "BUY", status: "ORDER_REQUESTED" },
+      ],
+      order: { createdAt: "DESC" },
+    });
+    if (latestBuy) {
+      return (Date.now() - new Date(latestBuy.createdAt).getTime()) / 60000;
+    }
+
+    const holding = await this.holdingRepository.findOne({ where: { symbol } });
+    if (!holding) {
+      return null;
+    }
+
+    return (Date.now() - new Date(holding.updatedAt).getTime()) / 60000;
+  }
+
+  private async findRecentLossForSymbol(symbol: string) {
+    const cutoff = new Date();
+    cutoff.setHours(0, 0, 0, 0);
+    return this.tradeLogRepository.findOne({
+      where: {
+        symbol,
+        side: "SELL",
+        status: "EXECUTED",
+      },
+      order: { createdAt: "DESC" },
+    }).then((log) => {
+      if (!log || log.realizedPnl == null || log.realizedPnl >= 0) {
+        return null;
+      }
+      return new Date(log.createdAt).getTime() >= cutoff.getTime() ? log : null;
+    });
+  }
 
   private async syncPortfolioFromAccount(account: Awaited<ReturnType<KiwoomService["getAccountEvaluation"]>>) {
     const state = await this.ensurePortfolioState();
